@@ -12,7 +12,6 @@ const plans = [
       "Faculty & student lifecycle tracking",
       "Annual performance reports (PDF export)",
     ],
-    color: "gray",
   },
   {
     name: "Gold",
@@ -25,7 +24,6 @@ const plans = [
       "Automated academic & attendance analytics",
       "Priority customer support",
     ],
-    color: "amber",
   },
   {
     name: "Premium",
@@ -38,7 +36,6 @@ const plans = [
       "Research & innovation performance tracking",
       "Dedicated success manager (24x7 support)",
     ],
-    color: "purple",
   },
 ];
 
@@ -52,13 +49,40 @@ export default function RegisterPage() {
   });
 
   const [showPlans, setShowPlans] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setShowPlans(true);
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // ✅ allows cookie to be stored
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Registration failed");
+
+      setMessage("✅ Institution registered successfully!");
+      console.log("Registration success:", data);
+      setShowPlans(true);
+    } catch (error) {
+      console.error("Registration error:", error);
+      setMessage(`❌ ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePayment = (plan) => {
@@ -74,34 +98,50 @@ export default function RegisterPage() {
         }`}
       >
         <div className="grid md:grid-cols-2">
+          {/* Left Section */}
           <div className="bg-gray-900 text-white p-12 flex flex-col justify-center">
             <h1 className="text-4xl font-bold mb-4">Register Your Institution</h1>
             <p className="text-gray-300 text-base leading-relaxed">
-              Join <span className="text-purple-400 font-semibold">SIHchronize</span> —
-              a unified data platform for institutional management, performance tracking,
-              and integrated analytics.
+              Join{" "}
+              <span className="text-purple-400 font-semibold">SIHchronize</span>{" "}
+              — a unified data platform for institutional management and
+              performance tracking.
             </p>
           </div>
 
+          {/* Right Section */}
           <div className="p-10">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">
               Institution Details
             </h2>
+
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  College Name
-                </label>
-                <input
-                  type="text"
-                  name="collegeName"
-                  required
-                  value={formData.collegeName}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                  placeholder="e.g. Delhi Institute of Technology"
-                />
-              </div>
+              {["collegeName", "email", "password", "aisheCode"].map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-700">
+                    {field === "collegeName"
+                      ? "College Name"
+                      : field === "aisheCode"
+                      ? "AISHE Code"
+                      : field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    type={field === "password" ? "password" : "text"}
+                    name={field}
+                    required
+                    value={formData[field]}
+                    onChange={handleChange}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                    placeholder={
+                      field === "collegeName"
+                        ? "e.g. Delhi Institute of Technology"
+                        : field === "aisheCode"
+                        ? "Enter AISHE Code"
+                        : ""
+                    }
+                  />
+                </div>
+              ))}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -118,70 +158,37 @@ export default function RegisterPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  College Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                  placeholder="name@college.ac.in"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                  placeholder="Enter a secure password"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  AISHE Code
-                </label>
-                <input
-                  type="text"
-                  name="aisheCode"
-                  required
-                  value={formData.aisheCode}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                  placeholder="Enter AISHE Code"
-                />
-              </div>
-
               <button
                 type="submit"
-                className="w-full py-3 mt-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-md transition-all duration-300"
+                disabled={loading}
+                className="w-full py-3 mt-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-md transition-all duration-300 disabled:opacity-60"
               >
-                Proceed to Plans
+                {loading ? "Registering..." : "Proceed to Plans"}
               </button>
             </form>
+
+            {/* Message Box */}
+            {message && (
+              <div
+                className={`mt-4 text-sm font-medium ${
+                  message.startsWith("✅") ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {message}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Subscription Plans */}
+      {/* Subscription Plans Modal */}
       {showPlans && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center backdrop-blur-sm z-50 px-6 py-12">
           <div className="max-w-6xl w-full grid md:grid-cols-3 gap-8 animate-fadeIn">
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-xl border border-gray-200 bg-white shadow-lg hover:shadow-xl transition p-8 flex flex-col justify-between`}
+                className="rounded-xl border border-gray-200 bg-white shadow-lg hover:shadow-xl transition p-8 flex flex-col justify-between"
               >
                 <div>
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">
@@ -218,7 +225,7 @@ export default function RegisterPage() {
 
                 <button
                   onClick={() => handlePayment(plan)}
-                  className={`mt-8 w-full py-2 rounded-md font-medium text-white bg-purple-600 hover:bg-purple-700 transition`}
+                  className="mt-8 w-full py-2 rounded-md font-medium text-white bg-purple-600 hover:bg-purple-700 transition"
                 >
                   Choose {plan.name}
                 </button>
