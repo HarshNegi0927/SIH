@@ -44,7 +44,7 @@ exports.registerUser = async (req, res) => {
 
     // Create new user
     const newUser = await User.create({
-      userId: `${userRole.toUpperCase()}-${Date.now()}`,
+      RegistrationNo: `${userRole.toUpperCase()}-${Date.now()}`,
       email,
       password: hashedPassword,
       role: userRole,
