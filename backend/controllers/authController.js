@@ -2,9 +2,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
-const User = require("../models/user");
+const User = require("../models/user"); // ✅ Corrected path & capitalization
 
-// helper to create JWT
+// Helper to create JWT
 const createToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
@@ -13,50 +13,101 @@ const createToken = (user) => {
   );
 };
 
-// Register
+// ==========================================================
+// ✅ Register (Institution Admin or General User)
+// ==========================================================
 exports.registerUser = async (req, res) => {
   try {
-    const { userId, email, password, role, profile } = req.body;
+    const { collegeName, collegeType, email, password, aisheCode, role } = req.body;
 
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: "Email already registered" });
+    // Default role = admin (for institution registration)
+    const userRole = role || "admin";
 
+    // Check if user already exists
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    // Check if AISHE code already registered (for institutions only)
+    if (userRole === "admin" && aisheCode) {
+      const existingAishe = await User.findOne({
+        "institutionInfo.aisheCode": aisheCode,
+      });
+      if (existingAishe) {
+        return res.status(400).json({ message: "AISHE code already registered" });
+      }
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create new user
     const newUser = await User.create({
-      userId,
+      userId: `${userRole.toUpperCase()}-${Date.now()}`,
       email,
       password: hashedPassword,
-      role,
-      profile,
-      isVerified: false,
+      role: userRole,
+      isVerified: true,
+      institutionInfo:
+        userRole === "admin"
+          ? {
+              collegeName,
+              collegeType,
+              aisheCode,
+              subscription: {
+                plan: "Basic",
+                startDate: new Date(),
+              },
+            }
+          : undefined,
     });
 
+    // Generate token
     const token = createToken(newUser);
 
+    // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // secure only in prod (https)
+      secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    // return token as well so frontend using localStorage can pick it up
-    res.status(201).json({ message: "Registered successfully", user: newUser, token });
+    // Response
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+        institutionInfo: newUser.institutionInfo,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Registration failed", error: error.message });
+    console.error("Registration error:", error);
+    res.status(500).json({
+      message: "Registration failed",
+      error: error.message,
+    });
   }
 };
 
-// Login (local)
+// ==========================================================
+// ✅ Login
+// ==========================================================
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(401).json({ message: "No user found" });
+    if (!user)
+      return res.status(401).json({ message: "No account found with that email" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid email or password" });
 
     const token = createToken(user);
 
@@ -69,25 +120,31 @@ exports.loginUser = async (req, res) => {
 
     res.json({
       message: "Login successful",
-      token, // <--- send token so frontend can store it if it wants
+      token,
       user: {
         id: user._id,
         email: user.email,
         role: user.role,
-        profile: user.profile,
+        institutionInfo: user.institutionInfo,
       },
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Login failed", error: error.message });
   }
 };
 
-// Google Login
-exports.googleLogin = passport.authenticate("google", { scope: ["profile", "email"] });
+// ==========================================================
+// ✅ Google Login (optional, kept intact)
+// ==========================================================
+exports.googleLogin = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
 
 exports.googleCallback = (req, res) => {
   passport.authenticate("google", (err, user) => {
-    if (err || !user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    if (err || !user)
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
 
     const token = createToken(user);
     res.cookie("token", token, {

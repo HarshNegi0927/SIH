@@ -10,8 +10,6 @@ import AdminHome from "./components/admin/AdminHome";
 import StudentList from "./components/admin/StudentList";
 import BulkUpload from "./components/admin/BulkUpload";
 import InviteAdmins from "./components/admin/InviteAdmins";
-import AdminRequests from "./components/admin/AdminRequests";
-import ActivityRequests from "./components/admin/ActivityRequests";
 import AdminEditProfile from "./components/admin/AttendanceSubmissions";
 
 export default function App() {
@@ -27,8 +25,6 @@ export default function App() {
           <Route path="students" element={<StudentList />} />
           <Route path="bulk-upload" element={<BulkUpload />} />
           <Route path="invite-admins" element={<InviteAdmins />} />
-          <Route path="requests" element={<AdminRequests />} />
-          <Route path="activity-requests" element={<ActivityRequests />} />
           <Route path="edit" element={<AdminEditProfile />} />
         </Route>
       </Routes>

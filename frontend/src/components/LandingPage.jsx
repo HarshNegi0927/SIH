@@ -1,65 +1,65 @@
-"use client";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+"use client"
+import { motion } from "framer-motion"
+import { useEffect, useState } from "react"
+import LoginModal from "./login-modal"
 
 export default function LandingPage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
   useEffect(() => {
     const handleSmoothScroll = (e) => {
-      const href = e.target.getAttribute("href");
+      const href = e.target.getAttribute("href")
       if (href && href.startsWith("#")) {
-        e.preventDefault();
-        const targetElement = document.querySelector(href);
+        e.preventDefault()
+        const targetElement = document.querySelector(href)
         if (targetElement) {
           targetElement.scrollIntoView({
             behavior: "smooth",
             block: "start",
-          });
+          })
         }
       }
-    };
+    }
 
-    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    const navLinks = document.querySelectorAll('nav a[href^="#"]')
     navLinks.forEach((link) => {
-      link.addEventListener("click", handleSmoothScroll);
-    });
+      link.addEventListener("click", handleSmoothScroll)
+    })
 
-    const statsEl = document.getElementById("stats");
-    if (!statsEl) return;
+    const statsEl = document.getElementById("stats")
+    if (!statsEl) return
 
-    const counters = statsEl.querySelectorAll(".js-counter");
+    const counters = statsEl.querySelectorAll(".js-counter")
     const observer = new IntersectionObserver(
       (entries, obs) => {
-        if (!entries[0].isIntersecting) return;
+        if (!entries[0].isIntersecting) return
         counters.forEach((el) => {
-          const target = Number.parseInt(el.dataset.target, 10) || 0;
-          let current = 0;
-          const step = Math.max(1, Math.floor(target / 120));
+          const target = Number.parseInt(el.dataset.target, 10) || 0
+          let current = 0
+          const step = Math.max(1, Math.floor(target / 120))
           const tick = () => {
-            current += step;
+            current += step
             if (current < target) {
-              el.textContent = current;
-              requestAnimationFrame(tick);
+              el.textContent = current
+              requestAnimationFrame(tick)
             } else {
-              el.textContent = target;
+              el.textContent = target
             }
-          };
-          tick();
-        });
-        obs.disconnect();
+          }
+          tick()
+        })
+        obs.disconnect()
       },
-      { threshold: 0.3 }
-    );
-    observer.observe(statsEl);
+      { threshold: 0.3 },
+    )
+    observer.observe(statsEl)
 
     return () => {
-      observer.disconnect();
+      observer.disconnect()
       navLinks.forEach((link) => {
-        link.removeEventListener("click", handleSmoothScroll);
-      });
-    };
-  }, []);
+        link.removeEventListener("click", handleSmoothScroll)
+      })
+    }
+  }, [])
 
   const features = [
     {
@@ -98,7 +98,7 @@ export default function LandingPage() {
       desc: "Seamless connectivity with existing LMS, ERP, and institutional systems.",
       gradient: "from-teal-500 to-cyan-500",
     },
-  ];
+  ]
 
   const benefits = [
     {
@@ -119,10 +119,12 @@ export default function LandingPage() {
       desc: "Access actionable insights and comprehensive analytics to optimize student outcomes.",
       stat: "3x faster decision making",
     },
-  ];
+  ]
 
   return (
     <div className="antialiased text-gray-900 bg-white scroll-smooth">
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-100 shadow-sm bg-white/95 backdrop-blur-lg">
         <div className="px-6 py-4 mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
@@ -163,12 +165,12 @@ export default function LandingPage() {
             </nav>
 
             <div className="items-center hidden space-x-3 md:flex">
-              <Link
-                to="/login"
+              <button
+                onClick={() => setIsLoginOpen(true)}
                 className="px-5 py-2.5 font-medium border-2 border-purple-600 rounded-xl text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-colors duration-300 focus:outline-none"
               >
                 Login
-              </Link>
+              </button>
 
               <button className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl focus:from-blue-700 focus:to-purple-700 focus:outline-none transition-all duration-300 shadow-lg">
                 Start Free Trial
@@ -195,9 +197,8 @@ export default function LandingPage() {
                   Experience
                 </h1>
                 <p className="max-w-2xl text-xl leading-relaxed text-gray-600 text-pretty">
-                  Centralize, validate, and showcase every student's academic
-                  journey with our comprehensive platform. Reduce administrative
-                  overhead while empowering students to excel.
+                  Centralize, validate, and showcase every student's academic journey with our comprehensive platform.
+                  Reduce administrative overhead while empowering students to excel.
                 </p>
               </div>
 
@@ -215,35 +216,21 @@ export default function LandingPage() {
               <div className="relative z-10 p-8 transition-shadow duration-300 bg-white shadow-2xl rounded-2xl">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Student Dashboard
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Student Dashboard</h3>
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50">
-                      <span className="text-sm text-gray-600">
-                        Activities Completed
-                      </span>
-                      <span className="text-sm font-semibold text-blue-600">
-                        12/15
-                      </span>
+                      <span className="text-sm text-gray-600">Activities Completed</span>
+                      <span className="text-sm font-semibold text-blue-600">12/15</span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-green-50">
-                      <span className="text-sm text-gray-600">
-                        Certificates Earned
-                      </span>
-                      <span className="text-sm font-semibold text-green-600">
-                        8
-                      </span>
+                      <span className="text-sm text-gray-600">Certificates Earned</span>
+                      <span className="text-sm font-semibold text-green-600">8</span>
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg bg-purple-50">
-                      <span className="text-sm text-gray-600">
-                        Portfolio Score
-                      </span>
-                      <span className="text-sm font-semibold text-purple-600">
-                        95%
-                      </span>
+                      <span className="text-sm text-gray-600">Portfolio Score</span>
+                      <span className="text-sm font-semibold text-purple-600">95%</span>
                     </div>
                   </div>
                 </div>
@@ -257,17 +244,10 @@ export default function LandingPage() {
 
       <div className="py-6 bg-grey-400">
         <div className="mb-4 text-center">
-          <p className="text-sm font-medium text-gray-700">
-            Compliance & Recognition
-          </p>
+          <p className="text-sm font-medium text-gray-700">Compliance & Recognition</p>
         </div>
         <div className="flex justify-center gap-6">
-          {[
-            "NAAC Approved",
-            "AICTE Compliant",
-            "NIRF Ready",
-            "UGC Recognized",
-          ].map((item, idx) => (
+          {["NAAC Approved", "AICTE Compliant", "NIRF Ready", "UGC Recognized"].map((item, idx) => (
             <motion.span
               key={idx}
               className="text-sm font-semibold"
@@ -289,8 +269,7 @@ export default function LandingPage() {
               Powerful Features for Modern Education
             </h2>
             <p className="max-w-3xl mx-auto text-xl text-gray-600 text-pretty">
-              Comprehensive tools designed to streamline student management and
-              enhance educational outcomes
+              Comprehensive tools designed to streamline student management and enhance educational outcomes
             </p>
           </div>
 
@@ -306,12 +285,8 @@ export default function LandingPage() {
                   >
                     {icon}
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {title}
-                  </h3>
-                  <p className="leading-relaxed text-gray-600 text-pretty">
-                    {desc}
-                  </p>
+                  <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+                  <p className="leading-relaxed text-gray-600 text-pretty">{desc}</p>
                 </div>
               </div>
             ))}
@@ -319,18 +294,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="benefits"
-        className="py-24 bg-gradient-to-br from-gray-50 to-blue-50"
-      >
+      <section id="benefits" className="py-24 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 space-y-4 text-center">
-            <h2 className="text-4xl font-bold text-gray-900 lg:text-5xl">
-              Why Leading Institutions Choose Us
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 lg:text-5xl">Why Leading Institutions Choose Us</h2>
             <p className="max-w-3xl mx-auto text-xl text-gray-600">
-              Join hundreds of educational institutions that have transformed
-              their student management approach
+              Join hundreds of educational institutions that have transformed their student management approach
             </p>
           </div>
 
@@ -343,10 +312,7 @@ export default function LandingPage() {
                 </div>
                 <div className="space-y-3">
                   <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-                  <p className="max-w-sm mx-auto leading-relaxed text-gray-600">
-                    {" "}
-                    {desc}{" "}
-                  </p>
+                  <p className="max-w-sm mx-auto leading-relaxed text-gray-600"> {desc} </p>
                   <div className="inline-flex items-center px-4 py-2 text-sm font-semibold text-blue-600 bg-white rounded-full shadow-md">
                     {" "}
                     {stat}{" "}
@@ -358,67 +324,34 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section
-        id="stats"
-        className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700"
-      >
+      <section id="stats" className="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
         <div className="max-w-6xl px-6 mx-auto text-center">
           <div className="mb-12">
-            <h2 className="mb-4 text-3xl font-bold text-white lg:text-4xl">
-              {" "}
-              Measurable Impact Across Institutions{" "}
-            </h2>
-            <p className="text-xl text-blue-100">
-              {" "}
-              Real results from real institutions using Smart Student Hub{" "}
-            </p>
+            <h2 className="mb-4 text-3xl font-bold text-white lg:text-4xl"> Measurable Impact Across Institutions </h2>
+            <p className="text-xl text-blue-100"> Real results from real institutions using Smart Student Hub </p>
           </div>
 
           <div className="grid gap-12 md:grid-cols-3">
             <div className="space-y-3">
-              <div
-                className="text-5xl font-bold text-white lg:text-6xl js-counter"
-                data-target="95"
-              >
+              <div className="text-5xl font-bold text-white lg:text-6xl js-counter" data-target="95">
                 0
               </div>
-              <div className="text-xl font-medium text-blue-100">
-                {" "}
-                Time Saved{" "}
-              </div>
-              <div className="text-sm text-blue-200">
-                {" "}
-                Average reduction in administrative workload{" "}
-              </div>
+              <div className="text-xl font-medium text-blue-100"> Time Saved </div>
+              <div className="text-sm text-blue-200"> Average reduction in administrative workload </div>
             </div>
             <div className="space-y-3">
-              <div
-                className="text-5xl font-bold text-white lg:text-6xl js-counter"
-                data-target="85"
-              >
+              <div className="text-5xl font-bold text-white lg:text-6xl js-counter" data-target="85">
                 0
               </div>
-              <div className="text-xl font-medium text-blue-100">
-                Participation Increase
-              </div>
-              <div className="text-sm text-blue-200">
-                {" "}
-                More students engaging in activities
-              </div>
+              <div className="text-xl font-medium text-blue-100">Participation Increase</div>
+              <div className="text-sm text-blue-200"> More students engaging in activities</div>
             </div>
             <div className="space-y-3">
-              <div
-                className="text-5xl font-bold text-white lg:text-6xl js-counter"
-                data-target="70"
-              >
+              <div className="text-5xl font-bold text-white lg:text-6xl js-counter" data-target="70">
                 0
               </div>
-              <div className="text-xl font-medium text-blue-100">
-                Faster Accreditation
-              </div>
-              <div className="text-sm text-blue-200">
-                Accelerated compliance reporting
-              </div>
+              <div className="text-xl font-medium text-blue-100">Faster Accreditation</div>
+              <div className="text-sm text-blue-200">Accelerated compliance reporting</div>
             </div>
           </div>
         </div>
@@ -431,8 +364,8 @@ export default function LandingPage() {
               Ready to Transform Your Institution?
             </h3>
             <p className="max-w-2xl mx-auto text-xl text-gray-600 text-pretty">
-              Join the education revolution. Schedule a personalized demo and
-              see how Smart Student Hub can elevate your institution.
+              Join the education revolution. Schedule a personalized demo and see how Smart Student Hub can elevate your
+              institution.
             </p>
           </div>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
@@ -444,8 +377,7 @@ export default function LandingPage() {
             </button>
           </div>
           <div className="pt-8 text-sm text-gray-500">
-            ✨ No credit card required • 30-day free trial • Setup in under 10
-            minutes
+            ✨ No credit card required • 30-day free trial • Setup in under 10 minutes
           </div>
         </div>
       </section>
@@ -463,8 +395,7 @@ export default function LandingPage() {
               </div>
               <p className="leading-relaxed text-gray-400 text-pretty">
                 {" "}
-                Empowering educational institutions with intelligent student
-                management solutions.
+                Empowering educational institutions with intelligent student management solutions.
               </p>
             </div>
 
@@ -480,8 +411,7 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Office Address</h4>
               <div className="text-gray-400">
-                🏢 4th Floor, Main Building ,Smart Tech LTD. <br /> Lucknow, UP,
-                India
+                🏢 4th Floor, Main Building ,Smart Tech LTD. <br /> Lucknow, UP, India
               </div>
             </div>
 
@@ -519,5 +449,5 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
-  );
+  )
 }
