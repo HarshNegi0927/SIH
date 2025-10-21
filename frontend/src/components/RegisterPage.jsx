@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const plans = [
   {
@@ -53,6 +53,25 @@ const RegisterPage = () => {
   });
 
   const [showPlans, setShowPlans] = useState(false);
+
+  // ✅ Disable all scrolling when modal is open
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (showPlans) {
+      html.classList.add("no-scroll");
+      body.classList.add("no-scroll");
+    } else {
+      html.classList.remove("no-scroll");
+      body.classList.remove("no-scroll");
+    }
+
+    return () => {
+      html.classList.remove("no-scroll");
+      body.classList.remove("no-scroll");
+    };
+  }, [showPlans]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -183,7 +202,7 @@ const RegisterPage = () => {
 
       {/* Subscription Plans Modal */}
       {showPlans && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 overflow-y-auto py-14">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50 overflow-hidden">
           <div className="grid gap-6 max-w-6xl w-full md:grid-cols-3 mx-6">
             {plans.map(({ name, price, duration, description, features, style }) => (
               <div
@@ -212,7 +231,6 @@ const RegisterPage = () => {
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
                           strokeLinecap="round"

@@ -243,7 +243,7 @@ const AdminLayout = () => {
                       </button>
 
                       <button className="flex items-center gap-2 border px-4 py-3 rounded hover:bg-gray-50">
-                        <UploadCloud size={16} /> Bulk Upload Facult
+                        <UploadCloud size={16} /> NAAC/AICTE Upload
                       </button>
 
                       <button className="flex items-center gap-2 border px-4 py-3 rounded hover:bg-gray-50">
