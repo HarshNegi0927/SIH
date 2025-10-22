@@ -2,9 +2,9 @@
 const User = require("../models/user");
 exports.getAdminProfile = async (req, res) => {
     try {
-      const userId = req.user.id; 
+      const RegistrationNo = req.user.id; 
   
-      const admin = await User.findById(userId).select("-password");
+      const admin = await User.findById(RegistrationNo).select("-password");
       if (!admin) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -25,9 +25,9 @@ exports.getAdminProfile = async (req, res) => {
   };
   exports.updateAdminProfile = async (req, res) => {
     try {
-      const userId = req.user.id; // from auth middleware
+      const RegistrationNo = req.user.id; // from auth middleware
   
-      const admin = await User.findById(userId);
+      const admin = await User.findById(RegistrationNo);
       if (!admin) return res.status(404).json({ message: "Admin not found" });
   
       if (admin.role !== "admin" && admin.role !== "super_admin") {
