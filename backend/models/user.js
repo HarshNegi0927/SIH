@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require("mongoose");
 
 // ------------------------------------
@@ -28,20 +27,73 @@ const socialLinksSchema = new mongoose.Schema(
 );
 
 // ------------------------------------
+// 🎓 Course Schema (per subject)
+// ------------------------------------
+const courseSchema = new mongoose.Schema(
+  {
+    subjectCode: String,
+    subjectName: String,
+    credits: Number,
+    grade: String, // e.g., A+, B, etc.
+    semester: Number,
+    academicYear: String, // e.g., "2024-2025"
+  },
+  { _id: false }
+);
+
+// ------------------------------------
+// 🧠 Semester Info Schema
+// ------------------------------------
+const semesterSchema = new mongoose.Schema(
+  {
+    semesterNumber: Number,
+    academicYear: String,
+    sgpa: Number,
+    totalCredits: Number,
+    subjects: [courseSchema],
+  },
+  { _id: false }
+);
+
+// ------------------------------------
+// 🏅 Academic Record Schema
+// ------------------------------------
+const academicInfoSchema = new mongoose.Schema(
+  {
+    program: { type: String }, // e.g., B.Tech, M.Tech
+    department: { type: String }, // e.g., CSE, ECE
+    yearOfAdmission: Number,
+    currentSemester: Number,
+    cgpa: Number,
+    totalCreditsEarned: Number,
+    pastSemesters: [semesterSchema], // full history
+    achievements: [
+      {
+        title: String,
+        type: String, // e.g., "Scholarship", "Research Paper"
+        year: String,
+        description: String,
+      },
+    ],
+  },
+  { _id: false }
+);
+
+// ------------------------------------
 // 👤 Profile Subschema
 // ------------------------------------
 const profileSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
-    lastName: { type: String },
-    middleName: { type: String },
-    profileImage: { type: String }, // URL
-    phone: { type: String },
-    dateOfBirth: { type: Date },
+    lastName: String,
+    middleName: String,
+    profileImage: String,
+    phone: String,
+    dateOfBirth: Date,
     gender: { type: String, enum: ["male", "female", "other"] },
-    designation: { type: String }, // For faculty/admin
-    institutionEmail: { type: String }, // Institutional email (optional)
-    registrationNo: { type: String }, // For students (unique per institution)
+    designation: String,
+    institutionEmail: String,
+    registrationNo: String, // for students (unique per institution)
     address: addressSchema,
     socialLinks: socialLinksSchema,
   },
@@ -59,7 +111,7 @@ const institutionInfoSchema = new mongoose.Schema(
       enum: ["Government", "Private"],
       required: true,
     },
-    aisheCode: { type: String, required: true }, // ⚠️ Removed unique constraint to allow many students in one AISHE
+    aisheCode: { type: String, required: true },
     subscription: {
       plan: {
         type: String,
@@ -75,14 +127,14 @@ const institutionInfoSchema = new mongoose.Schema(
 );
 
 // ------------------------------------
-// 🧠 User Schema
+// 🧍‍♂️ User Schema (Main)
 // ------------------------------------
 const userSchema = new mongoose.Schema(
   {
     RegistrationNo: {
       type: String,
       unique: true,
-      required: true, // Can be Registration No, Employee ID, or generated ID
+      required: true,
     },
     email: {
       type: String,
@@ -99,8 +151,17 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "faculty", "admin", "super_admin"],
       required: true,
     },
+
+    // 🧑‍🎓 Student / Faculty profile
     profile: profileSchema,
+
+    // 🏫 Institution Info
     institutionInfo: institutionInfoSchema,
+
+    // 🎓 Academic Info (only for students)
+    academicInfo: academicInfoSchema,
+
+    // General metadata
     isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
     lastLogin: { type: Date },
@@ -109,16 +170,12 @@ const userSchema = new mongoose.Schema(
 );
 
 // ------------------------------------
-// ⚡ Indexes (optimized for performance)
+// ⚡ Indexes
 // ------------------------------------
-
-// General purpose indexes
 userSchema.index({ email: 1 });
 userSchema.index({ RegistrationNo: 1 });
 userSchema.index({ "institutionInfo.aisheCode": 1 });
 userSchema.index({ role: 1, isActive: 1 });
-
-// Unique combination for students per institution
 userSchema.index(
   { "profile.registrationNo": 1, "institutionInfo.aisheCode": 1 },
   { unique: true, partialFilterExpression: { role: "student" } }
