@@ -37,7 +37,7 @@ exports.registerUser = async (req, res) => {
       cgpa,
     } = req.body;
 
-    const userRole = role || "student";
+    const userRole = role;
 
     // 🔍 1. Check if email already exists
     const existingEmail = await User.findOne({ email });

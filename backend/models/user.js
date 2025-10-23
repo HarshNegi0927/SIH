@@ -84,7 +84,7 @@ const academicInfoSchema = new mongoose.Schema(
 // ------------------------------------
 const profileSchema = new mongoose.Schema(
   {
-    firstName: { type: String, required: true },
+    firstName: { type: String},
     lastName: String,
     middleName: String,
     profileImage: String,

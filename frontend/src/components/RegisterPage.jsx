@@ -46,6 +46,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     aisheCode: "",
+    role:"admin"
   });
 
   const [showPlans, setShowPlans] = useState(false);
