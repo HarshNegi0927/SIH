@@ -2,8 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiGet } from "../../lib/api";
+import { useAuth } from "../../context/authContext";
 
 export default function AdminHome() {
+  const { user } = useAuth();
   const [summary, setSummary] = useState(null);
 
   useEffect(() => {
@@ -16,9 +18,11 @@ export default function AdminHome() {
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       <div className="p-6 bg-white rounded shadow">
         <h3 className="font-semibold">Institution</h3>
-        <div className="mt-2 text-sm text-gray-600">{summary?.name || "—"}</div>
         <div className="mt-3 text-xs text-gray-500">
-          {summary?.contactEmail || "No contact email"}
+          {summary?.contactEmail || user?.email || "Loading..."}
+        </div>
+        <div className="mt-2 text-sm text-gray-600">
+          {summary?.name || user?.institutionInfo?.collegeName || "Loading..."}
         </div>
       </div>
 

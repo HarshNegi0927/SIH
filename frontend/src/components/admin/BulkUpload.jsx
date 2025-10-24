@@ -1,48 +1,43 @@
 // src/components/admin/BulkUpload.jsx
 import React, { useState } from "react";
-import { apiPost } from "../../lib/api";
-import { useNavigate } from "react-router-dom";
-
-function parseCSV(text) {
-  const lines = text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(",").map((h) => h.trim());
-  return lines.slice(1).map((line) => {
-    const cols = line.split(",").map((c) => c.trim());
-    const obj = {};
-    headers.forEach((h, i) => (obj[h] = cols[i] || ""));
-    return obj;
-  });
-}
+import { apiUploadFile } from "../../lib/api";
 
 export default function BulkUpload() {
-  const [csv, setCsv] = useState("");
-  const [preview, setPreview] = useState([]);
+  const [file, setFile] = useState(null); // 2. Store the file, not text
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [response, setResponse] = useState(null);
 
-  function handlePreview() {
-    setPreview(parseCSV(csv));
+  function handleFileChange(e) {
+    setFile(e.target.files[0]);
+    setResponse(null); // Clear old response
   }
 
-  async function handleCreate() {
-    const rows = parseCSV(csv);
-    if (!rows.length) return alert("No rows");
+  async function handleUpload() {
+    if (!file) return alert("Please select a CSV file to upload.");
     setLoading(true);
+    setResponse(null);
+
+    // 3. Create FormData
+    const formData = new FormData();
+    formData.append("file", file); // 'file' must match middleware
+
     try {
-      await apiPost("/institutions/me/students/bulk-create", {
-        students: rows,
-      });
-      alert("Bulk create finished. Check server for report.");
-      setCsv("");
-      setPreview([]);
-      navigate("/admin/students");
+      // 4. Use the new API function
+      const res = await apiUploadFile(
+        "/upload/students", // Make sure this route is correct!
+        formData
+      );
+
+      setResponse(res); // Store the success/failure report
+      alert(
+        `Upload complete: ${res.successCount} succeeded, ${res.failedCount} failed.`
+      );
+      setFile(null);
+      // navigate("/admin/students"); // Optional: navigate on success
     } catch (err) {
       console.error(err);
-      alert("Bulk create failed (demo)");
+      alert(`Upload failed: ${err.message}`);
+      setResponse({ message: err.message, failed: [] });
     } finally {
       setLoading(false);
     }
@@ -52,43 +47,53 @@ export default function BulkUpload() {
     <div className="p-6 bg-white rounded shadow">
       <h3 className="mb-3 font-semibold">Bulk Student Upload (CSV)</h3>
       <p className="mb-3 text-sm text-gray-500">
-        Header format: <code>firstName,lastName,email,roll,department</code>
+        Upload a CSV file. The backend will parse it.
       </p>
-      <textarea
-        value={csv}
-        onChange={(e) => setCsv(e.target.value)}
-        rows={8}
+
+      {/* 5. Use a file input, not a textarea */}
+      <input
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
         className="w-full p-2 mb-3 border rounded"
       />
+
       <div className="flex gap-2 mb-4">
-        <button onClick={handlePreview} className="px-3 py-2 border rounded">
-          Preview
-        </button>
         <button
-          onClick={handleCreate}
-          disabled={loading}
-          className="px-3 py-2 text-white bg-green-600 rounded"
+          onClick={handleUpload}
+          disabled={loading || !file}
+          className="px-3 py-2 text-white bg-green-600 rounded disabled:opacity-50"
         >
-          {loading ? "Creating..." : "Create Accounts"}
+          {loading ? "Uploading..." : "Upload File"}
         </button>
       </div>
 
-      <div>
-        {preview.length === 0 ? (
-          <div className="text-sm text-gray-500">No preview</div>
-        ) : (
-          preview.map((r, idx) => (
-            <div key={idx} className="p-2 border-b">
-              <div className="font-medium">
-                {r.firstName} {r.lastName} — {r.email}
-              </div>
-              <div className="text-xs text-gray-500">
-                {r.roll} • {r.department}
-              </div>
+      {/* 6. Display the response from the server */}
+      {response && (
+        <div className="mt-4">
+          <h4 className="font-semibold">Upload Report</h4>
+          <p className="text-sm text-gray-700">{response.message}</p>
+          {response.successCount > 0 && (
+            <p className="text-sm text-green-600">
+              Succeeded: {response.successCount}
+            </p>
+          )}
+          {response.failedCount > 0 && (
+            <div className="mt-2">
+              <p className="text-sm text-red-600">
+                Failed: {response.failedCount}
+              </p>
+              <ul className="text-xs list-disc list-inside">
+                {response.results?.failed.map((f, i) => (
+                  <li key={i}>
+                    <strong>{f.email || "Unknown"}:</strong> {f.reason}
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
