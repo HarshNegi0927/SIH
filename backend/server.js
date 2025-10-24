@@ -16,6 +16,9 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));
+
 // CORS Configuration
 app.use(
   cors({
@@ -36,10 +39,9 @@ app.get("/", (req, res) => {
 // API Routes
 // ----------------------
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/admin", require("./routes/adminRoutes"));  // ✅ admin profile/update
-app.use("/api/upload", require("./routes/bulkUploadRoutes"));  // ✅ bulk upload
+app.use("/api/admin", require("./routes/adminRoutes")); // ✅ admin profile/update
+app.use("/api/upload", require("./routes/bulkUploadRoutes")); // ✅ bulk upload
 app.use("/api/academic", require("./routes/academicRoutes"));
-
 
 // ----------------------
 // 404 Handler
@@ -54,5 +56,7 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
-  console.log(`Frontend: ${process.env.FRONTEND_URL || "http://localhost:5173"}`);
+  console.log(
+    `Frontend: ${process.env.FRONTEND_URL || "http://localhost:5173"}`
+  );
 });

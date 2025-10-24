@@ -1,21 +1,21 @@
 const mongoose = require("mongoose");
 
-// ------------------------------------
-// 📦 Address Subschema
-// ------------------------------------
-const addressSchema = new mongoose.Schema(
-  {
-    street: String,
-    city: String,
-    state: String,
-    country: String,
-    pincode: String,
-  },
-  { _id: false }
-);
+//
+// // 📦 Address Subschema
+//
+// const addressSchema = new mongoose.Schema(
+//   {
+//     street: String,
+//     city: String,
+//     state: String,
+//     country: String,
+//     pincode: String,
+//   },
+//   { _id: false }
+// );
 
 // ------------------------------------
-// 🌐 Social Links Subschema
+// 🌐 Social Links Subschemac
 // ------------------------------------
 const socialLinksSchema = new mongoose.Schema(
   {
@@ -84,7 +84,7 @@ const academicInfoSchema = new mongoose.Schema(
 // ------------------------------------
 const profileSchema = new mongoose.Schema(
   {
-    firstName: { type: String},
+    firstName: { type: String },
     lastName: String,
     middleName: String,
     profileImage: String,
@@ -94,7 +94,7 @@ const profileSchema = new mongoose.Schema(
     designation: String,
     institutionEmail: String,
     registrationNo: String, // for students (unique per institution)
-    address: addressSchema,
+    address: String,
     socialLinks: socialLinksSchema,
   },
   { _id: false }
