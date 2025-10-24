@@ -54,7 +54,9 @@ exports.registerUser = async (req, res) => {
       if (existingAishe) {
         return res
           .status(400)
-          .json({ message: "This AISHE code is already registered by another admin" });
+          .json({
+            message: "This AISHE code is already registered by another admin",
+          });
       }
     }
 
@@ -160,7 +162,9 @@ exports.loginUser = async (req, res) => {
     // 1️⃣ Find user
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(401).json({ message: "No account found with that email" });
+      return res
+        .status(401)
+        .json({ message: "No account found with that email" });
 
     // 2️⃣ Verify password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -169,14 +173,6 @@ exports.loginUser = async (req, res) => {
 
     // 3️⃣ Create token
     const token = createToken(user);
-
-    // 4️⃣ Send cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
 
     // 5️⃣ Response
     res.status(200).json({
