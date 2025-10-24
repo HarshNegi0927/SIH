@@ -44,13 +44,6 @@ const AdminLayout = () => {
       });
     }
   }, [user]);
-  const [stats] = useState({
-    students: 1245,
-    faculty: 87,
-    pendingProofs: 32,
-    attendanceToday: 145,
-    activeWorkshops: 3,
-  });
 
   const handleLogout = () => {
     logout(); // Clears context and localStorage

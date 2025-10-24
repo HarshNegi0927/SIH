@@ -27,6 +27,7 @@ async function handleRes(res) {
 }
 
 export async function apiGet(path) {
+  console.log(path);
   const res = await fetch(`${API_BASE}${path}`, {
     method: "GET",
     headers: getAuthHeaders(), // 2. Use the auth headers

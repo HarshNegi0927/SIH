@@ -245,9 +245,9 @@ const AdminEditProfile = () => {
                   onChange={handleChange}
                   className="w-full p-2 mt-1 border rounded-lg"
                 >
-                  <option>Female</option>
-                  <option>Male</option>
-                  <option>Other</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div>
