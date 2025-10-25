@@ -11,8 +11,6 @@ import StudentList from "./components/admin/StudentList";
 import BulkUpload from "./components/admin/BulkUpload";
 import InviteAdmins from "./components/admin/InviteAdmins";
 import AdminEditProfile from "./components/admin/AttendanceSubmissions";
-import FacultyDashboard from "./components/faculty";
-
 
 export default function App() {
   return (

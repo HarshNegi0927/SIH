@@ -1,44 +1,47 @@
 // controllers/bulkUploadController.js
 const fs = require("fs");
-const path = require("path");
 const csv = require("csv-parser");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
 
-// -------------------------------
-// BULK UPLOAD STUDENTS (FIXED)
-// -------------------------------
 exports.bulkUploadStudents = async (req, res) => {
-  console.log("REQ FILES:", req.files);
-  console.log("REQ BODY:", req.body);
+  // 1. GET THE LOGGED-IN ADMIN (from requireAuth middleware)
+  const admin = req.user;
+
+  // 2. VALIDATE THE ADMIN AND GET THEIR INSTITUTION INFO
+  if (!admin || !admin.institutionInfo) {
+    return res.status(401).json({
+      message: "Authentication error: Admin or institution info not found.",
+    });
+  }
+
+  const { collegeName, collegeType, aisheCode } = admin.institutionInfo;
 
   try {
-    const uploadedFile = req.file || (req.files && req.files[0]);
-    if (!uploadedFile) {
+    // 3. CHECK FOR THE FILE
+    if (!req.file) {
       return res.status(400).json({ message: "No CSV file uploaded" });
     }
 
-    const filePath = uploadedFile.path
-      ? uploadedFile.path
-      : path.join(__dirname, "..", "uploads", uploadedFile.filename);
-
     const students = [];
+    const filePath = req.file.path;
 
-    // ✅ Wrap parsing in a Promise to await completion
+    // 4. PARSE THE CSV FILE
     await new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
         .pipe(csv())
         .on("data", (row) => {
-          // Normalize headers (case-insensitive)
-          const normalized = Object.fromEntries(
-            Object.entries(row).map(([k, v]) => [k.trim().toLowerCase(), v.trim()])
-          );
+          // Normalize all headers to lowercase and trim
+          const normalized = {};
+          Object.keys(row).forEach((k) => {
+            normalized[k.trim().toLowerCase()] = row[k].trim();
+          });
 
+          // Check for minimum required fields from CSV
           if (
             normalized.email &&
-            normalized.firstname &&
             normalized.registrationno &&
-            normalized.collegename
+            normalized.firstname
           ) {
             students.push(normalized);
           }
@@ -47,72 +50,104 @@ exports.bulkUploadStudents = async (req, res) => {
         .on("error", reject);
     });
 
+    // 5. HANDLE EMPTY OR INVALID CSV
     if (students.length === 0) {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      fs.unlinkSync(filePath); // Delete temp file
       return res.status(400).json({
-        message: "No valid student data found in CSV",
+        message:
+          "CSV file is empty or headers are incorrect. Required headers: email, registrationno, firstname.",
       });
     }
 
     const results = { success: [], failed: [] };
 
-    // ✅ Use Promise.all to ensure all inserts complete
-    await Promise.all(
+    // 6. PROCESS ALL STUDENTS
+    // Use Promise.allSettled to try every student, even if some fail
+    const settledPromises = await Promise.allSettled(
       students.map(async (s) => {
-        try {
-          const existing = await User.findOne({ email: s.email.toLowerCase() });
-          if (existing) {
-            results.failed.push({
-              email: s.email,
-              reason: "Email already exists",
-            });
-            return;
-          }
+        // Check for duplicate email OR registration number
+        const existing = await User.findOne({
+          $or: [
+            { email: s.email.toLowerCase() },
+            { RegistrationNo: s.registrationno },
+          ],
+        });
 
-          const passwordToUse = s.registrationno;
-          const hashedPassword = await bcrypt.hash(passwordToUse, 10);
-
-          const newStudent = await User.create({
-            RegistrationNo: s.registrationno,
-            email: s.email.toLowerCase(),
-            password: hashedPassword,
-            role: "student",
-            profile: {
-              firstName: s.firstname,
-              lastName: s.lastname || "",
-            },
-            institutionInfo: {
-              collegeName: s.collegename,
-              collegeType: s.collegetype || "Government",
-              aisheCode: s.aishecode || req.body.aisheCode || "N/A",
-            },
-            isVerified: true,
-          });
-
-          results.success.push({
-            email: newStudent.email,
-            password: passwordToUse, // for admin confirmation
-          });
-        } catch (err) {
-          console.error("Error adding student:", err.message);
-          results.failed.push({ email: s.email, reason: err.message });
+        if (existing) {
+          throw new Error(
+            `Email or RegistrationNo already exists for ${s.email}`
+          );
         }
+
+        // Use registration number as the default password
+        const passwordToUse = s.registrationno || "password123";
+        const hashedPassword = await bcrypt.hash(passwordToUse, 10);
+
+        // 7. CREATE THE NEW STUDENT DOCUMENT
+        const newStudent = await User.create({
+          RegistrationNo: s.registrationno,
+          email: s.email.toLowerCase(),
+          password: hashedPassword,
+          role: "student", // Set role automatically
+          isVerified: true, // Auto-verify them
+
+          // Populate profile from CSV
+          profile: {
+            firstName: s.firstname,
+            lastName: s.lastname || "",
+            phone: s.phone || "",
+            registrationNo: s.registrationno, // Store in profile as well
+          },
+
+          // 8. *** THIS IS YOUR KEY LOGIC ***
+          // Stamp the student with the ADMIN'S institution info
+          institutionInfo: {
+            collegeName: collegeName,
+            collegeType: collegeType,
+            aisheCode: aisheCode,
+          },
+
+          // Populate "other things" into academicInfo
+          academicInfo: {
+            department: s.department || "N/A",
+            program: s.program || "B.Tech", // Default if not provided
+            yearOfAdmission: s.yearofadmission || new Date().getFullYear(),
+            currentSemester: s.currentsemester || 1,
+          },
+        });
+
+        return { email: newStudent.email, status: "fulfilled" };
       })
     );
 
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    // 9. COMPILE THE FINAL REPORT
+    settledPromises.forEach((result) => {
+      if (result.status === "fulfilled") {
+        results.success.push(result.value);
+      } else {
+        // 'result.reason' is the Error object
+        results.failed.push({ reason: result.reason.message });
+      }
+    });
+
+    // 10. CLEAN UP AND SEND RESPONSE
+    fs.unlinkSync(filePath); // Delete the temporary CSV file
 
     return res.status(200).json({
-      message: "Bulk upload complete",
+      message: "Bulk upload process complete.",
       total: students.length,
       successCount: results.success.length,
       failedCount: results.failed.length,
       results,
     });
   } catch (error) {
+    // Catch any major errors (e.g., file read error)
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path); // Clean up on error
+    }
     console.error("🔥 Bulk upload error:", error);
     return res.status(500).json({
-      message: "Bulk upload failed",
+      message: "Server error during bulk upload",
       error: error.message,
     });
   }
