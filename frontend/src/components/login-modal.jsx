@@ -1,27 +1,27 @@
-// components/LoginModal.jsx
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext"; // ✅ localStorage-based context
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function LoginModal({ isOpen, onClose }) {
   const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [remember, setRemember] = useState(false);
 
   const handleChange = (e) => {
-    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    // basic client-side validation
     if (!form.email || !form.password) {
       setError("Please enter both email and password.");
       return;
@@ -29,10 +29,9 @@ export default function LoginModal({ isOpen, onClose }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // important: allow httpOnly cookie from backend
         body: JSON.stringify({
           email: form.email.trim().toLowerCase(),
           password: form.password,
@@ -40,40 +39,21 @@ export default function LoginModal({ isOpen, onClose }) {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Invalid credentials");
 
-      if (!res.ok) {
-        // backend should return { message: "..." } on error
-        throw new Error(data?.message || "Login failed");
-      }
+      // ✅ Save token and user in AuthContext + localStorage
+      login(data.user, data.token);
 
-      // Success
-      // Backend sets httpOnly cookie; backend also returns token in body if you configured it.
-      // If you want client-side JWT access (not recommended for sensitive use),
-      // you can store it in localStorage — optional.
-      if (data.token && remember) {
-        try {
-          localStorage.setItem("token", data.token);
-        } catch (err) {
-          // ignore storage errors
-        }
-      }
-
-      // Optionally, you might want to populate global user state here
-      // e.g. setUser(data.user) if you have a context/store
-
-      // close modal & redirect to appropriate dashboard based on role
       onClose();
 
-      // choose destination: admin vs faculty/student
       const dest =
-        data?.user?.role === "admin" || data?.user?.role === "super_admin"
+        data.user?.role === "admin" || data.user?.role === "super_admin"
           ? "/admin"
           : "/profile";
 
-      // small timeout to allow modal close animation
-      setTimeout(() => navigate(dest, { replace: true }), 200);
+      setTimeout(() => navigate(dest, { replace: true }), 300);
     } catch (err) {
-      setError(err.message || "Login failed");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -93,10 +73,7 @@ export default function LoginModal({ isOpen, onClose }) {
             initial={{ scale: 0.95, opacity: 0, y: 12 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 12 }}
-            transition={{ type: "spring", damping: 18, stiffness: 220 }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="login-heading"
+            transition={{ type: 'spring', damping: 18, stiffness: 220 }}
           >
             <button
               onClick={onClose}
@@ -106,18 +83,24 @@ export default function LoginModal({ isOpen, onClose }) {
               ✕
             </button>
 
+            {/* 🟣 Header */}
             <div className="text-center mb-4">
-              <h2 id="login-heading" className="text-2xl font-semibold text-gray-800">
-                Welcome Back
+              <h2 className="text-2xl font-semibold text-gray-800">
+                Welcome Back 👋
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                Login to your <span className="text-purple-600 font-medium">SIHchronize</span> account
+                Login to your{" "}
+                <span className="text-purple-600 font-medium">SIHchronize</span> account
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {/* 🧾 Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="email"
+                >
                   Email Address
                 </label>
                 <input
@@ -134,7 +117,10 @@ export default function LoginModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
+                <label
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                  htmlFor="password"
+                >
                   Password
                 </label>
                 <input
@@ -150,35 +136,16 @@ export default function LoginModal({ isOpen, onClose }) {
                 />
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="inline-flex items-center text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={() => setRemember((r) => !r)}
-                    className="mr-2 h-4 w-4 rounded border-gray-300 focus:ring-purple-500"
-                  />
-                  Remember token
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Optionally open a password recovery flow
-                    alert("Password recovery coming soon.");
-                  }}
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {error && <div className="text-sm text-red-600">{error}</div>}
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded p-2">
+                  {error}
+                </div>
+              )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-md disabled:opacity-60"
+                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-md hover:shadow-lg transition disabled:opacity-60"
               >
                 {loading ? "Signing in…" : "Login"}
               </button>
@@ -186,7 +153,11 @@ export default function LoginModal({ isOpen, onClose }) {
 
             <div className="mt-4 text-center text-sm text-gray-600">
               Don’t have an account?{" "}
-              <Link to="/register" onClick={onClose} className="text-purple-600 hover:underline">
+              <Link
+                to="/register"
+                onClick={onClose}
+                className="text-purple-600 hover:underline font-medium"
+              >
                 Register now
               </Link>
             </div>
