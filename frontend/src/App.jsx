@@ -11,6 +11,8 @@ import StudentList from "./components/admin/StudentList";
 import BulkUpload from "./components/admin/BulkUpload";
 import InviteAdmins from "./components/admin/InviteAdmins";
 import AdminEditProfile from "./components/admin/AttendanceSubmissions";
+import FacultyDashboard from "./components/faculty";
+
 
 export default function App() {
   return (
@@ -20,6 +22,7 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/faculty" element={<FacultyDashboard />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />
           <Route path="students" element={<StudentList />} />
