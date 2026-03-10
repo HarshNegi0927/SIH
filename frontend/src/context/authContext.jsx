@@ -1,62 +1,65 @@
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
 
-// Create the context
 const AuthContext = createContext(null);
 
-// Create the provider component
 export const AuthProvider = ({ children }) => {
-  // Initialize state from localStorage, so the user stays logged in on refresh
-  const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(
-    localStorage.getItem("user")
-      ? JSON.parse(localStorage.getItem("user"))
-      : null
-  );
+  // Initialize from localStorage
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-  // The login function
+  // Derived state
+  const isAuthenticated = !!token;
+
+  // Automatically keep localStorage in sync
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    } else {
+      localStorage.removeItem("token");
+    }
+
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [token, user]);
+
+  // Login function
   const login = (userData, userToken) => {
-    // 1. Update React state
     setToken(userToken);
     setUser(userData);
-
-    // 2. Update localStorage
-    localStorage.setItem("token", userToken);
-    localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // The logout function
+  // Logout function
   const logout = () => {
-    // 1. Clear React state
     setToken(null);
     setUser(null);
-
-    // 2. Clear localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("user");
   };
 
-  // Memoize the context value to prevent unnecessary re-renders
-  // We also derive `isAuthenticated` from the presence of a token
+  // Memoized context value
   const value = useMemo(
     () => ({
       token,
       user,
+      isAuthenticated,
       login,
       logout,
-      isAuthenticated: !!token, // True if 'token' is not null or empty
     }),
-    [token, user] // Re-compute only when token or user changes
+    [token, user, isAuthenticated]
   );
 
-  // Wrap the children components with the AuthContext.Provider
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Create a custom hook to use the auth context
+// Hook for components
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

@@ -42,7 +42,8 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes")); // ✅ admin profile/update
 app.use("/api/upload", require("./routes/bulkUploadRoutes")); // ✅ bulk upload
 app.use("/api/academic", require("./routes/academicRoutes"));
-
+const userRoutes = require('./routes/userRoutes');
+app.use('/api', userRoutes);
 // ----------------------
 // 404 Handler
 // ----------------------

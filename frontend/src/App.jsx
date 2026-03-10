@@ -22,7 +22,7 @@ export default function App() {
         <Route path="/profile/edit" element={<EditProfile />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/faculty" element={<FacultyDashboard />} />
+        {/* <Route path="/faculty" element={<FacultyDashboard />} /> */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />
           <Route path="students" element={<StudentList />} />

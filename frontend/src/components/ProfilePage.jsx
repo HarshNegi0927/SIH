@@ -72,22 +72,29 @@ const ProfilePage = () => {
         </div>
 
         <div className="header-right">
-          <div className="notification-box">
+          <div className="notification-box" title="View notifications">
             <Bell size={18} />
-            <p>Notifications</p>
           </div>
+
+          <button
+            className="theme-toggle"
+            aria-label="Toggle theme"
+            onClick={handleThemeToggle}
+            title="Toggle Light/Dark"
+          >
+            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+          </button>
 
           <div className="admin-info-box">
             <div className="admin-avatar">HN</div>
             <div className="admin-text">
-              <p className="admin-name">Harsh Negi</p>
-              <p className="admin-role">Student</p>
+              <p className="admin-name">{form.name}</p>
+              <p className="admin-role">{form.role}</p>
             </div>
           </div>
 
-          <button className="logout-btn">
+          <button className="logout-btn" title="Logout">
             <LogOut size={16} />
-            Logout
           </button>
         </div>
       </header>

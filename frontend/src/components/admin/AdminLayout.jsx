@@ -47,12 +47,12 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     logout(); // Clears context and localStorage
-    navigate("/login"); // Redirects to login page
+    navigate("/"); // Redirects to login page
   };
   useEffect(() => {
     // If the context has checked and found no token, redirect.
     if (!isAuthenticated) {
-      navigate("/login");
+      navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
