@@ -10,8 +10,6 @@ const requireAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
-
-    // Verify the token using your secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id);
@@ -19,14 +17,25 @@ const requireAuth = async (req, res, next) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Attach user to the request object
     req.user = user;
-
-    next(); 
+    next();
   } catch (err) {
     console.error("Auth error:", err);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
-module.exports = { requireAuth };
+// Role-based guard — use after requireAuth
+// Usage: requireRole("faculty")  or  requireRole("faculty", "admin")
+const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        error: `Access denied. Required role(s): ${roles.join(", ")}`,
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { requireAuth, requireRole };
