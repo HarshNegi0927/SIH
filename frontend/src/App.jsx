@@ -3,6 +3,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./components/LandingPage";
 import ProfilePage from "./components/ProfilePage";
+import EditProfile from "./components/EditProfile";
 import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/edit" element={<EditProfile />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         {/* <Route path="/faculty" element={<FacultyDashboard />} /> */}

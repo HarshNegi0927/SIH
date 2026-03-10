@@ -417,6 +417,7 @@ export default function ProfilePage() {
                   <li>IEEE Journal Publication - 2024</li>
                 </ul>
               </div>
+
             </div>
           </div>
         </div>
