@@ -1,64 +1,21 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Users, BookOpen, Clock, Save, Plus, Trash2, Edit2, CheckCircle, XCircle, Download, ArrowLeft, Bell, LogOut } from 'lucide-react';
 
 export default function CourseManagement() {
-  const { courseId } = useParams();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('attendance');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [saveStatus, setSaveStatus] = useState('');
 
-  // Mock course data based on courseId
-  const coursesData = {
-    1: {
-      name: 'Data Structures & Algorithms',
-      code: 'CS301',
-      semester: 'SEMESTER 3',
-      section: 'A',
-      schedule: 'Mon, Wed, Fri - 10:00 AM',
-      totalStudents: 45,
-      faculty: 'Dr. Rajesh Kumar'
-    },
-    2: {
-      name: 'Database Management Systems',
-      code: 'CS302',
-      semester: 'SEMESTER 3',
-      section: 'B',
-      schedule: 'Tue, Thu - 11:00 AM',
-      totalStudents: 42,
-      faculty: 'Dr. Rajesh Kumar'
-    },
-    3: {
-      name: 'Operating Systems',
-      code: 'CS303',
-      semester: 'SEMESTER 4',
-      section: 'A',
-      schedule: 'Mon, Wed, Fri - 2:00 PM',
-      totalStudents: 48,
-      faculty: 'Dr. Rajesh Kumar'
-    },
-    4: {
-      name: 'Computer Networks',
-      code: 'CS304',
-      semester: 'SEMESTER 4',
-      section: 'B',
-      schedule: 'Tue, Thu - 3:00 PM',
-      totalStudents: 40,
-      faculty: 'Dr. Rajesh Kumar'
-    },
-    5: {
-      name: 'Software Engineering',
-      code: 'CS305',
-      semester: 'SEMESTER 5',
-      section: 'A',
-      schedule: 'Mon, Wed - 9:00 AM',
-      totalStudents: 38,
-      faculty: 'Dr. Rajesh Kumar'
-    }
+  // Sample course data
+  const courseData = {
+    name: 'Advanced Data Structures and Algorithms',
+    code: 'CSN13301',
+    semester: 'SEMESTER 3',
+    section: 'A',
+    schedule: 'Mon, Wed, Fri - 10:00 AM',
+    totalStudents: 45,
+    faculty: 'Dr. Rajesh Kumar'
   };
-
-  const courseData = coursesData[courseId] || coursesData[1];
 
   // Sample students data with attendance
   const [students, setStudents] = useState([
@@ -215,13 +172,10 @@ export default function CourseManagement() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="w-full px-6 lg:px-12 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate(-1)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
+              <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
               <div className="flex items-center space-x-3">
@@ -248,7 +202,7 @@ export default function CourseManagement() {
       </header>
 
       {/* Course Info Cards */}
-      <div className="w-full px-6 lg:px-12 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
@@ -305,7 +259,7 @@ export default function CourseManagement() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="w-full px-6 lg:px-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
           <div className="flex min-w-max">
             {[
@@ -332,7 +286,7 @@ export default function CourseManagement() {
 
       {/* Attendance Tab */}
       {activeTab === 'attendance' && (
-        <div className="w-full px-6 lg:px-12 py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Student Attendance</h2>
@@ -455,7 +409,7 @@ export default function CourseManagement() {
 
       {/* Assignments Tab */}
       {activeTab === 'assignments' && (
-        <div className="w-full px-6 lg:px-12 py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Course Assignments</h2>

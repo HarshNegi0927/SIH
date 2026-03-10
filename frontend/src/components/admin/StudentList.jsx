@@ -7,7 +7,7 @@ export default function StudentList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiGet("/institutions/me/students")
+    apiGet("/admin/students")
       .then((d) => setStudents(d.students || []))
       .catch(() => setStudents([]))
       .finally(() => setLoading(false));

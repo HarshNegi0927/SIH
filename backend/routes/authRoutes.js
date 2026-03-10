@@ -9,7 +9,7 @@ router.post("/register", authController.registerUser);
 router.post("/login", authController.loginUser);
 
 // Google OAuth
-router.get("/google", authController.googleLogin);
-router.get("/google/callback", authController.googleCallback);
+// router.get("/google", authController.googleLogin);
+// router.get("/google/callback", authController.googleCallback);
 
 module.exports = router;
