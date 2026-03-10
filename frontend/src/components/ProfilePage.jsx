@@ -1,159 +1,73 @@
-"use client"
-
-import { useEffect, useMemo, useRef, useState } from "react"
-import "./Profilepage.css"
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Bell,
-  LogOut,
-  TrendingUp,
-  BookOpen,
-  Trophy,
-  Feather,
-  ClipboardList,
   User,
-  BarChart2,
-  FileText,
-  Sun,
-  Moon,
-  Edit3,
-  Download,
-  Menu,
-  X,
-} from "lucide-react"
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
+  Mail,
+  Phone,
+  Github,
+  Linkedin,
+  Award,
+  BookOpen,
+  Users,
+  Calendar,
+  Star,
+  TrendingUp,
+  Edit,
+  Plus,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-const spiData = [
-  { sem: "1st sem", SPI: 7.57, CPI: 7.57 },
-  { sem: "2nd sem", SPI: 7.68, CPI: 7.62 },
-  { sem: "3rd sem", SPI: 8.37, CPI: 7.82 },
-  { sem: "4th sem", SPI: 7.62, CPI: 7.74 },
-]
+const ProfilePage = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("academic");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState("");
+  const [formData, setFormData] = useState({});
 
-const grades = {
-  "1st sem": ["Physics - A", "Maths I - B+", "Electrical - B", "Graphics - A-"],
-  "2nd sem": ["Chemistry - A", "Maths II - B+", "C Programming - A-", "Workshop - B"],
-  "3rd sem": ["DSA - A+", "DBMS - A", "COA - B+", "OS - A-"],
-  "4th sem": ["DAA - A", "CN - A", "SE - B+", "Probability - B"],
-}
-
-export default function ProfilePage() {
-  const [selectedSem, setSelectedSem] = useState("4th sem")
-  const [theme, setTheme] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("theme") || "light"
-    }
-    return "light"
-  })
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [form, setForm] = useState({
-    name: "Harsh Negi",
-    email: "student@SIHnc.edu",
-    institution: "MNNIT Allahabad",
-    aishe: "AISHE-98765",
-    contact: "+91 88400 47057",
-    role: "Student",
-  })
-
-  const revealRefs = useRef([])
-  revealRefs.current = []
-  const addToRefs = (el) => {
-    if (el && !revealRefs.current.includes(el)) revealRefs.current.push(el)
-  }
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", theme)
-      localStorage.setItem("theme", theme)
-    }
-  }, [theme])
-
-  useEffect(() => {
-    const onScroll = () => {
-      revealRefs.current.forEach((el) => {
-        const rect = el.getBoundingClientRect()
-        if (rect.top < window.innerHeight - 80) el.classList.add("reveal-in")
-      })
-    }
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
-  const graphYAxisDomain = useMemo(() => {
-    const spi = spiData.map((d) => d.SPI)
-    const cpi = spiData.map((d) => d.CPI)
-    const all = spi.concat(cpi)
-    const min = Math.min(...all)
-    const max = Math.max(...all)
-    const pad = 0.2
-    return [Math.floor((min - pad) * 10) / 10, Math.ceil((max + pad) * 10) / 10]
-  }, [])
-
-  const handleThemeToggle = () => setTheme((t) => (t === "light" ? "dark" : "light"))
-  const handleEditOpen = () => setIsEditOpen(true)
-  const handleEditClose = () => setIsEditOpen(false)
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target
-    setForm((f) => ({ ...f, [name]: value }))
-  }
-
-  const handleFormSave = (e) => {
-    e.preventDefault()
-    handleEditClose()
-  }
-
-  const handleResolveCPI = () => {
-    alert("CPI recalculated successfully from SPI records.")
-  }
-
-  const handleDownloadResume = () => {
-    const lines = [
-      "===== Resume =====",
-      `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      `Contact: ${form.contact}`,
-      `Institution: ${form.institution}`,
-      `AISHE Code: ${form.aishe}`,
-      `Role: ${form.role}`,
-      "",
-      "Academic Performance:",
-      ...spiData.map((d) => `  ${d.sem}: SPI ${d.SPI} | CPI ${d.CPI}`),
-      "",
-      `Recent Grades (${selectedSem}):`,
-      ...(grades[selectedSem] || []).map((x) => `  - ${x}`),
-      "",
-      "Achievements:",
-      "  Certifications: Python - NPTEL; Data Analytics - Coursera",
-      "  Merit Awards: Institute Rank Holder - 2023",
-      "  Sports & Culture: Inter-university Football Runner-up",
-      "  Research & Publications: IEEE Journal Publication - 2024",
-    ].join("\n")
-
-    const blob = new Blob([lines], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${form.name.split(" ").join("_")}_Resume.txt`
-    document.body.appendChild(a)
-    a.click()
-    URL.revokeObjectURL(url)
-    a.remove()
-  }
+  const spiCpiData = [
+    { sem: "1st Sem", SPI: 8.2, CPI: 8.2 },
+    { sem: "2nd Sem", SPI: 8.8, CPI: 8.4 },
+    { sem: "3rd Sem", SPI: 8.6, CPI: 8.5 },
+    { sem: "4th Sem", SPI: 9.1, CPI: 8.7 },
+  ];
 
   return (
-    <div className="profile-page">
-      {/* HEADER */}
-      <header className="admin-header">
-        <div className="header-left">
-          <button className="mobile-menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle menu">
-            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <div className="logo-circle">EV</div>
-          <div className="logo-title">
-            <h1>SIHnchronize</h1>
-            <span>College Management Portal</span>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-purple-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="ml-2 text-xl font-semibold text-purple-800">
+                SIHchronize
+              </span>
+            </div>
+            <nav className="hidden md:flex space-x-8">
+              <a href="#" className="text-gray-600 hover:text-purple-600">
+                Dashboard
+              </a>
+              <a href="#" className="text-purple-600 font-medium">
+                Profile
+              </a>
+              <a href="#" className="text-gray-600 hover:text-purple-600">
+                Courses
+              </a>
+              <a href="#" className="text-gray-600 hover:text-purple-600">
+                Activities
+              </a>
+            </nav>
           </div>
         </div>
 
@@ -185,296 +99,428 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {/* LAYOUT */}
-      <div className="main-body">
-        {/* SIDEBAR */}
-        <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-          <ul>
-            <li className="active" title="Profile">
-              <User size={18} />
-              <span>Profile</span>
-            </li>
-            <li
-              title="Go to SPI / CPI Chart"
-              onClick={() => {
-                document.getElementById("spiGraph").scrollIntoView({ behavior: "smooth" })
-                setSidebarOpen(false)
-              }}
-            >
-              <BarChart2 size={18} />
-              <span>SPI / CPI Chart</span>
-            </li>
-            <li
-              title="See Achievements"
-              onClick={() => {
-                document.getElementById("achievements-section").scrollIntoView({ behavior: "smooth" })
-                setSidebarOpen(false)
-              }}
-            >
-              <Trophy size={18} />
-              <span>Achievements</span>
-            </li>
-            <li title="Academic Record">
-              <BookOpen size={18} />
-              <span>Academic Record</span>
-            </li>
-            <li title="Attendance">
-              <ClipboardList size={18} />
-              <span>Attendance</span>
-            </li>
-            <li title="Documents">
-              <FileText size={18} />
-              <span>Documents</span>
-            </li>
-          </ul>
-        </aside>
-
-        {/* CONTENT */}
-        <div className="content-area">
-          {/* PROFILE CARD */}
-          <div className="profile-card card reveal" ref={addToRefs}>
-            <div className="photo-upload-block">
-              <div className="photo-circle" aria-label="Profile photo">
-                DS
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Header */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-md border border-purple-100 p-8 mb-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+            {/* Profile Photo */}
+            <div className="relative">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
+                <User className="w-12 h-12 text-white" />
               </div>
-              <button className="btn btn-secondary" title="Upload photo">
-                Upload Photo
-              </button>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
 
-            <div className="info-list-container">
-              <div className="info-item">
-                <p className="info-label">Full Name</p>
-                <p className="info-value">{form.name}</p>
-              </div>
-              <div className="info-item">
-                <p className="info-label">Email Address</p>
-                <p className="info-value">{form.email}</p>
-              </div>
-              <div className="info-item">
-                <p className="info-label">Institution</p>
-                <p className="info-value">{form.institution}</p>
-              </div>
-              <div className="info-item">
-                <p className="info-label">AISHE Code</p>
-                <p className="info-value">{form.aishe}</p>
-              </div>
-              <div className="info-item">
-                <p className="info-label">Contact Number</p>
-                <p className="info-value">{form.contact}</p>
-              </div>
-              <div className="info-item">
-                <p className="info-label">Role</p>
-                <p className="info-value">{form.role}</p>
-              </div>
-            </div>
-
-            <div className="profile-actions">
-              <button className="action-btn primary" onClick={handleEditOpen}>
-                <Edit3 size={16} />
-                Edit Profile
-              </button>
-              <button className="action-btn outline" onClick={handleResolveCPI}>
-                Resolve CPI
-              </button>
-              <button className="action-btn outline" onClick={handleDownloadResume}>
-                <Download size={16} />
-                Resume
-              </button>
-            </div>
-          </div>
-
-          {/* SPI / CPI GRAPH & GRADE BOX SECTION */}
-          <div className="section-card card reveal" id="spiGraph" ref={addToRefs}>
-            <div className="section-header">
-              <TrendingUp size={22} className="header-icon" />
-              <h2>Academic Performance Trend</h2>
-            </div>
-
-            <div className="spi-graph-row">
-              <div className="spi-graph-container">
-                <p className="graph-source">📊 Source: Office of the Dean Academics</p>
-
-                <ResponsiveContainer width="100%" height={340}>
-                  <LineChart
-                    data={spiData}
-                    onMouseMove={(e) => e && e.activeLabel && setSelectedSem(e.activeLabel)}
-                    margin={{ top: 10, right: 24, left: 0, bottom: 0 }}
-                  >
-                    <XAxis dataKey="sem" tickLine={false} axisLine={false} stroke="var(--text-muted)" />
-                    <YAxis domain={graphYAxisDomain} stroke="var(--text-muted)" />
-                    <Tooltip
-                      wrapperStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--border-color)",
-                      }}
-                      contentStyle={{
-                        borderRadius: 12,
-                        backgroundColor: "var(--bg-card)",
-                        border: "1px solid var(--border-color)",
-                      }}
-                      cursor={{
-                        stroke: "var(--accent-blue)",
-                        strokeDasharray: "5 5",
-                      }}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ paddingTop: 10 }} />
-                    <Line
-                      type="monotone"
-                      dataKey="SPI"
-                      stroke="var(--accent-blue)"
-                      strokeWidth={3}
-                      dot={{
-                        stroke: "var(--accent-blue)",
-                        strokeWidth: 2,
-                        r: 5,
-                      }}
-                      activeDot={{ r: 7 }}
-                      animationDuration={600}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="CPI"
-                      stroke="var(--accent-teal)"
-                      strokeWidth={3}
-                      dot={{
-                        stroke: "var(--accent-teal)",
-                        strokeWidth: 2,
-                        r: 5,
-                      }}
-                      activeDot={{ r: 7 }}
-                      animationDuration={600}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* GRADE BOX */}
-              <div className="grades-box card-subtle">
-                <div className="grades-header">
-                  <ClipboardList size={20} />
-                  <h3>
-                    <span className="sem-badge">{selectedSem}</span> Grades
-                  </h3>
+            {/* Basic Info + Edit Button */}
+            <div className="flex-1">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                    Arjun Sharma
+                  </h1>
+                  <p className="text-lg text-gray-600 mb-2">
+                    Roll No: CSE2021045
+                  </p>
+                  <p className="text-gray-600">
+                    B.Tech Computer Science Engineering • Final Year
+                  </p>
+                  <p className="text-gray-600">
+                    Indian Institute of Technology, Delhi
+                  </p>
                 </div>
 
-                <ul className="grades-list">
-                  {(grades[selectedSem] || []).map((g, i) => (
-                    <li key={i}>
-                      <span className="grade-dot"></span>
-                      {g}
-                    </li>
-                  ))}
-                </ul>
+                
+
+              <div className="mt-4 flex flex-col lg:flex-row lg:justify-end gap-4">
+                <div className="flex flex-col gap-2">
+                                                      
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Mail className="w-4 h-4" />
+                    <span>arjun.sharma@iitd.ac.in</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Phone className="w-4 h-4" />
+                    <span>+91 98765 43210</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 justify-start lg:justify-end">
+                    <Linkedin className="w-5 h-5 text-purple-600 cursor-pointer hover:text-purple-700" />
+                    <Github className="w-5 h-5 text-gray-700 cursor-pointer hover:text-gray-900" />
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 justify-start lg:justify-end"><Edit className="w-6 h-6 text-green-600 cursor-pointer hover:text-purple-700 transition"
+                     onClick={() => navigate("/profile/edit")}
+                      />
+                
+                  
+                   
+                  </div>
+
+                </div>  
+                              
+              </div>
+             
+              {/* Contact Info */}
+
               </div>
             </div>
           </div>
 
-          {/* ACHIEVEMENTS SECTION */}
-          <div id="achievements-section" className="section-card card reveal" ref={addToRefs}>
-            <div className="section-header">
-              <Trophy size={22} className="header-icon" />
-              <h2>Achievements & Recognition</h2>
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-purple-100">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">8.7</div>
+              <div className="text-sm text-gray-600">CGPA</div>
             </div>
-            <div className="achievements-grid">
-              <div className="achievement-block card-subtle">
-                <div className="achievement-icon-wrapper cert">
-                  <BookOpen size={28} />
-                </div>
-                <h3>Certifications</h3>
-                <ul>
-                  <li>Python - NPTEL</li>
-                  <li>Data Analytics - Coursera</li>
-                </ul>
-              </div>
-
-              <div className="achievement-block card-subtle">
-                <div className="achievement-icon-wrapper merit">
-                  <Trophy size={28} />
-                </div>
-                <h3>Merit Awards</h3>
-                <ul>
-                  <li>Institute Rank Holder - 2023</li>
-                </ul>
-              </div>
-
-              <div className="achievement-block card-subtle">
-                <div className="achievement-icon-wrapper sports">
-                  <Feather size={28} />
-                </div>
-                <h3>Sports & Culture</h3>
-                <ul>
-                  <li>Inter-university Football Runner-up</li>
-                </ul>
-              </div>
-
-              <div className="achievement-block card-subtle">
-                <div className="achievement-icon-wrapper research">
-                  <ClipboardList size={28} />
-                </div>
-                <h3>Research & Publications</h3>
-                <ul>
-                  <li>IEEE Journal Publication - 2024</li>
-                </ul>
-              </div>
-
+            <div className="text-center">
+              <div className="text-2xl font-bold text-indigo-600">142</div>
+              <div className="text-sm text-gray-600">Credits Earned</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-pink-600">94%</div>
+              <div className="text-sm text-gray-600">Attendance</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-400">15</div>
+              <div className="text-sm text-gray-600">Activities</div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* EDIT PROFILE MODAL */}
-      {isEditOpen && (
-        <div className="modal-backdrop" onClick={handleEditClose}>
-          <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Edit Your Profile</h3>
-              <button className="modal-close" onClick={handleEditClose} aria-label="Close">
-                ✕
+        {/* Navigation Tabs */}
+        <div className="bg-white/80 backdrop-blur-md rounded-t-xl shadow-sm border border-purple-100 border-b-0">
+          <div className="flex overflow-x-auto">
+            {[
+              { id: "academic", label: "Academic Info", icon: BookOpen },
+              { id: "certifications", label: "Certifications", icon: Award },
+              { id: "events", label: "Events & Workshops", icon: Calendar },
+              { id: "activities", label: "Clubs & Activities", icon: Users },
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === id
+                    ? "border-purple-600 text-purple-600 bg-purple-50"
+                    : "border-transparent text-gray-600 hover:text-purple-700 hover:bg-purple-50/40"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
               </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white/80 backdrop-blur-md rounded-b-xl shadow-sm border border-purple-100 p-6">
+          {/* Academic Info */}
+          {activeTab === "academic" && (
+            <div className="space-y-6">
+              {/* SPI-CPI Graph */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                  Semester-wise SPI & CPI Graph
+                </h3>
+
+                <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-purple-100 p-6 shadow-md">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={spiCpiData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E9D8FD" />
+                      <XAxis dataKey="sem" stroke="#7C3AED" />
+                      <YAxis domain={[8, 9.5]} stroke="#7C3AED" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "rgba(255,255,255,0.95)",
+                          border: "1px solid #E9D8FD",
+                          borderRadius: "10px",
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="SPI"
+                        stroke="#7C3AED"
+                        strokeWidth={3}
+                        activeDot={{ r: 8 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="CPI"
+                        stroke="#A855F7"
+                        strokeDasharray="4 2"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-xs text-gray-500 mt-2">
+                    Source: Office of the Dean Academics
+                  </p>
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-yellow-600" />
+                    Academic Achievements
+                  </h3>
+                  <Plus
+                    className="w-5 h-5 text-purple-400 cursor-pointer"
+                    onClick={() => {
+                      setModalType("achievement");
+                      setShowModal(true);
+                    }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    {
+                      title: "Dean's List",
+                      period: "2022-2023",
+                      type: "Academic Excellence",
+                    },
+                    {
+                      title: "Merit Scholarship",
+                      period: "2021-2024",
+                      type: "Financial Award",
+                    },
+                    {
+                      title: "Best Project Award",
+                      period: "2023",
+                      type: "Project Recognition",
+                    },
+                    {
+                      title: "Research Paper Publication",
+                      period: "2024",
+                      type: "Research Achievement",
+                    },
+                  ].map((achievement, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100"
+                    >
+                      <Award className="w-6 h-6 text-purple-600" />
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {achievement.title}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {achievement.type} • {achievement.period}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <form className="modal-body" onSubmit={handleFormSave}>
-              <div className="form-row">
-                <label>Full Name</label>
-                <input name="name" value={form.name} onChange={handleFormChange} placeholder="Enter your name" />
-              </div>
-              <div className="form-row">
-                <label>Email Address</label>
-                <input name="email" value={form.email} onChange={handleFormChange} placeholder="your@email.com" />
-              </div>
-              <div className="form-row">
-                <label>Institution</label>
-                <input
-                  name="institution"
-                  value={form.institution}
-                  onChange={handleFormChange}
-                  placeholder="Your Institution"
+          )}
+
+          {/* Certifications */}
+          {activeTab === "certifications" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-purple-600" />
+                  Certifications
+                </h3>
+                <Plus
+                  className="w-5 h-5 text-purple-400 cursor-pointer"
+                  onClick={() => {
+                    setModalType("certification");
+                    setShowModal(true);
+                  }}
                 />
               </div>
-              <div className="form-row">
-                <label>AISHE Code</label>
-                <input name="aishe" value={form.aishe} onChange={handleFormChange} placeholder="AISHE-XXXXX" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* List of uploaded certificates can go here */}
               </div>
-              <div className="form-row">
-                <label>Contact Number</label>
-                <input name="contact" value={form.contact} onChange={handleFormChange} placeholder="+91 XXXXX XXXXX" />
+            </div>
+          )}
+
+          {/* Events & Workshops */}
+          {activeTab === "events" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  Events & Workshops
+                </h3>
+                <Plus
+                  className="w-5 h-5 text-purple-400 cursor-pointer"
+                  onClick={() => {
+                    setModalType("event");
+                    setShowModal(true);
+                  }}
+                />
               </div>
-              <div className="form-row">
-                <label>Role</label>
-                <input name="role" value={form.role} onChange={handleFormChange} placeholder="Your Role" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* List of events can go here */}
               </div>
-              <div className="modal-actions">
-                <button type="button" className="btn ghost" onClick={handleEditClose}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn primary">
-                  Save Changes
-                </button>
+            </div>
+          )}
+
+          {/* Clubs & Activities */}
+          {activeTab === "activities" && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-purple-600" />
+                  Clubs & Activities
+                </h3>
+                <Plus
+                  className="w-5 h-5 text-purple-400 cursor-pointer"
+                  onClick={() => {
+                    setModalType("club");
+                    setShowModal(true);
+                  }}
+                />
               </div>
-            </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* List of clubs can go here */}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+            <h3 className="text-lg font-semibold mb-4 capitalize">
+              Add {modalType}
+            </h3>
+
+            {/* ACHIEVEMENTS */}
+            {modalType === "achievement" && (
+              <>
+                <input
+                  placeholder="Title"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Subtitle"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, subtitle: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Year"
+                  className="w-full border p-2 rounded mb-4"
+                  onChange={(e) =>
+                    setFormData({ ...formData, year: e.target.value })
+                  }
+                />
+              </>
+            )}
+
+            {/* CERTIFICATIONS */}
+            {modalType === "certification" && (
+              <>
+                <input
+                  placeholder="Certification Title"
+                  className="w-full border p-2 rounded mb-3"
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                />
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  className="mb-4"
+                  onChange={(e) =>
+                    setFormData({ ...formData, file: e.target.files[0] })
+                  }
+                />
+              </>
+            )}
+
+            {/* EVENTS */}
+            {modalType === "event" && (
+              <>
+                <input
+                  placeholder="Event Name"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Role"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Year"
+                  className="w-full border p-2 rounded mb-4"
+                  onChange={(e) =>
+                    setFormData({ ...formData, year: e.target.value })
+                  }
+                />
+              </>
+            )}
+
+            {/* CLUBS */}
+            {modalType === "club" && (
+              <>
+                <input
+                  placeholder="Club Name"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, club: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Designation"
+                  className="w-full border p-2 rounded mb-2"
+                  onChange={(e) =>
+                    setFormData({ ...formData, designation: e.target.value })
+                  }
+                />
+                <input
+                  placeholder="Duration"
+                  className="w-full border p-2 rounded mb-4"
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
+                />
+              </>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  console.log(formData); // later connect to backend
+                  setShowModal(false);
+                  setFormData({});
+                }}
+                className="bg-purple-600 text-white px-4 py-2 rounded text-sm"
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+export default ProfilePage;

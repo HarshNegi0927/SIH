@@ -1,228 +1,119 @@
 import React, { useState } from "react";
-import {
-  User,
-  Mail,
-  Phone,
-  Github,
-  Linkedin,
-  Camera,
-  Edit3,
-  ArrowLeft,
-} from "lucide-react";
+import { User, Mail, Phone, Github, Linkedin, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "#f4f9fb",
-    display: "flex",
-    justifyContent: "center",
-    padding: "40px 20px",
-    fontFamily: "Inter, sans-serif",
-  },
-  card: {
-    width: "100%",
-    maxWidth: "850px",
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "28px",
-    border: "1px solid #d5dfe3",
-    boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #eef2f6",
-    paddingBottom: "16px",
-    marginBottom: "20px",
-  },
-  title: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    color: "#054b58",
-  },
-  backBtn: {
-    background: "transparent",
-    border: "none",
-    color: "#0aa5b7",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    cursor: "pointer",
-    fontWeight: 500,
-  },
-  avatarRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    marginBottom: "24px",
-  },
-  avatar: {
-    width: "90px",
-    height: "90px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #0aa5b7, #00768e)",
-    display: "grid",
-    placeItems: "center",
-    color: "#fff",
-    fontSize: "28px",
-    fontWeight: 700,
-    position: "relative",
-  },
-  cameraBtn: {
-    position: "absolute",
-    bottom: "-4px",
-    right: "-4px",
-    background: "#fff",
-    borderRadius: "50%",
-    border: "1px solid #d5dfe3",
-    padding: "6px",
-    cursor: "pointer",
-  },
-  hint: {
-    color: "#64748b",
-    fontSize: "14px",
-  },
-  form: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "18px 24px",
-  },
-  group: {
-    display: "flex",
-    flexDirection: "column",
-  },
-  label: {
-    fontSize: "12px",
-    color: "#64748b",
-    marginBottom: "6px",
-    textTransform: "uppercase",
-    fontWeight: 500,
-  },
-  inputWrap: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    border: "1px solid #d5dfe3",
-    borderRadius: "8px",
-    padding: "8px 10px",
-  },
-  input: {
-    border: "none",
-    outline: "none",
-    width: "100%",
-    fontSize: "14px",
-  },
-  textarea: {
-    border: "1px solid #d5dfe3",
-    borderRadius: "8px",
-    padding: "10px",
-    fontSize: "14px",
-    resize: "none",
-  },
-  saveRow: {
-    marginTop: "28px",
-    display: "flex",
-    justifyContent: "flex-end",
-  },
-  saveBtn: {
-    background: "#0aa5b7",
-    color: "#fff",
-    border: "none",
-    padding: "10px 26px",
-    borderRadius: "8px",
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-};
 
 const EditProfile = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "Harsh Negi",
-    roll: "ME2022041",
-    email: "student@SIHnc.edu",
-    phone: "+91 88400 47057",
-    branch: "Mechanical Engineering",
-    year: "2nd Year",
-    college: "MNNIT Allahabad",
+    name: "Arjun Sharma",
+    roll: "CSE2021045",
+    email: "arjun.sharma@iitd.ac.in",
+    phone: "+91 98765 43210",
+    branch: "Computer Science Engineering",
+    year: "Final Year",
+    college: "Indian Institute of Technology, Delhi",
     github: "",
     linkedin: "",
-    bio: "Aspiring engineer with interest in software & analytics",
+    bio: "Passionate about software development and problem solving.",
   });
 
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = () => {
+    // 🔗 later: API call here
+    console.log("Updated Data:", formData);
+    navigate("/profile");
+  };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex justify-center py-10">
+      <div className="w-full max-w-3xl bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-purple-100 p-8">
+        
         {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.title}>
-            <User size={20} />
-            <h2>Edit Profile</h2>
-          </div>
-          <button style={styles.backBtn} onClick={() => navigate("/profile")}>
-            <ArrowLeft size={16} /> Back
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Edit Profile</h2>
+          <button
+            onClick={() => navigate("/profile")}
+            className="text-sm text-purple-600 hover:underline"
+          >
+            Cancel
           </button>
         </div>
 
-        {/* Avatar */}
-        <div style={styles.avatarRow}>
-          <div style={styles.avatar}>
-            HN
-            <button style={styles.cameraBtn}>
-              <Edit3  size={14} color="#0aa5b7" />
+        {/* Profile Picture */}
+        <div className="flex items-center gap-6 mb-8">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+              <User className="w-10 h-10 text-white" />
+            </div>
+            <button className="absolute -bottom-1 -right-1 bg-white p-1 rounded-full shadow">
+              <Camera className="w-4 h-4 text-purple-600" />
             </button>
+          </div>
+          <div>
+            <p className="font-medium text-gray-900">{formData.name}</p>
+            <p className="text-sm text-gray-500">Change profile photo</p>
           </div>
         </div>
 
         {/* Form */}
-        <div style={styles.form}>
+        <div className="space-y-5">
           {[
-            ["Full Name", "name", User],
-            ["Roll Number", "roll"],
-            ["Email", "email", Mail],
-            ["Phone", "phone", Phone],
-            ["Branch", "branch"],
-            ["Year", "year"],
-            ["College", "college"],
-            ["GitHub", "github", Github],
-            ["LinkedIn", "linkedin", Linkedin],
-          ].map(([label, name, Icon]) => (
-            <div key={name} style={styles.group}>
-              <label style={styles.label}>{label}</label>
-              <div style={styles.inputWrap}>
-                {Icon && <Icon size={16} />}
+            { label: "Full Name", name: "name", icon: User },
+            { label: "Roll Number", name: "roll" },
+            { label: "Email", name: "email", icon: Mail },
+            { label: "Phone", name: "phone", icon: Phone },
+            { label: "Branch", name: "branch" },
+            { label: "Year", name: "year" },
+            { label: "College", name: "college" },
+            { label: "GitHub", name: "github", icon: Github },
+            { label: "LinkedIn", name: "linkedin", icon: Linkedin },
+          ].map(({ label, name, icon: Icon }) => (
+            <div key={name}>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                {label}
+              </label>
+              <div className="relative">
+                {Icon && (
+                  <Icon className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                )}
                 <input
-                  style={styles.input}
+                  type="text"
                   name={name}
                   value={formData[name]}
                   onChange={handleChange}
+                  className={`w-full ${
+                    Icon ? "pl-10" : "pl-4"
+                  } pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none`}
                 />
               </div>
             </div>
           ))}
 
-          <div style={{ ...styles.group, gridColumn: "span 2" }}>
-            <label style={styles.label}>Bio</label>
+          {/* Bio */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Bio
+            </label>
             <textarea
-              rows={3}
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              style={styles.textarea}
+              rows={3}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Save */}
-        <div style={styles.saveRow}>
-          <button style={styles.saveBtn} onClick={() => navigate("/profile")}>
+        {/* Save Button */}
+        <div className="mt-8 flex justify-end">
+          <button
+            onClick={handleSave}
+            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-500 text-white rounded-lg shadow hover:opacity-90 transition"
+          >
             Save Changes
           </button>
         </div>

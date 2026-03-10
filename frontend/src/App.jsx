@@ -11,7 +11,8 @@ import AdminHome from "./components/admin/AdminHome";
 import StudentList from "./components/admin/StudentList";
 import BulkUpload from "./components/admin/BulkUpload";
 import InviteAdmins from "./components/admin/InviteAdmins";
-import AdminEditProfile from "./components/admin/AdminEditProfile"
+import AdminEditProfile from "./components/admin/AdminEditProfile";
+
 export default function App() {
   return (
     <Router>
