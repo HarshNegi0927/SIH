@@ -1,30 +1,508 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  User,
-  Mail,
-  Phone,
-  Github,
-  Linkedin,
-  Award,
-  BookOpen,
-  Users,
-  Calendar,
-  Star,
-  TrendingUp,
-  Edit,
-  Plus,
+  User, Mail, Phone, Github, Linkedin, Award, BookOpen,
+  Users, Calendar, Star, TrendingUp, Edit, Plus,
+  Bell, Moon, Sun, LogOut, X, ChevronRight,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
+
+const COLORS = {
+  primary: "#6C3DE0",
+  primaryLight: "#EDE9FF",
+  primaryMid: "#9B6DFF",
+  accent: "#F59E0B",
+  accentGreen: "#10B981",
+  accentPink: "#EC4899",
+  text: "#1A1033",
+  textMuted: "#6B7280",
+  border: "#E8E3FF",
+  cardBg: "#FFFFFF",
+  pageBg: "#F4F1FF",
+};
+
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .pp-root {
+    min-height: 100vh;
+    background: #F4F1FF;
+    font-family: 'Sora', sans-serif;
+    color: #1A1033;
+  }
+
+  /* ── HEADER ── */
+  .pp-header {
+    background: #fff;
+    border-bottom: 1px solid #E8E3FF;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(108,61,224,0.06);
+  }
+  .pp-header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pp-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .pp-logo-mark {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.5px;
+  }
+  .pp-logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1A1033;
+    letter-spacing: -0.3px;
+  }
+  .pp-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .pp-nav a {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .pp-nav a:hover { background: #EDE9FF; color: #6C3DE0; }
+  .pp-nav a.active { background: #EDE9FF; color: #6C3DE0; }
+  .pp-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pp-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    border: 1px solid #E8E3FF;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6B7280;
+    transition: all 0.15s;
+  }
+  .pp-icon-btn:hover { background: #EDE9FF; color: #6C3DE0; border-color: #C4B5FF; }
+  .pp-user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 4px;
+    border: 1px solid #E8E3FF;
+    border-radius: 99px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pp-user-chip:hover { border-color: #C4B5FF; background: #F9F7FF; }
+  .pp-avatar-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pp-user-name { font-size: 13px; font-weight: 600; color: #1A1033; }
+  .pp-user-role { font-size: 11px; color: #9B6DFF; }
+
+  /* ── PAGE BODY ── */
+  .pp-body {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* ── SIDEBAR ── */
+  .pp-sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .pp-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #E8E3FF;
+    overflow: hidden;
+  }
+
+  .pp-profile-card {
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+  }
+  .pp-profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 72px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+  }
+  .pp-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 14px;
+    margin-top: 24px;
+  }
+  .pp-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    border: 4px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(108,61,224,0.25);
+    position: relative;
+    z-index: 1;
+  }
+  .pp-online-dot {
+    position: absolute;
+    bottom: 3px; right: 3px;
+    width: 14px; height: 14px;
+    background: #10B981;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    z-index: 2;
+  }
+  .pp-name { font-size: 20px; font-weight: 700; color: #1A1033; margin-bottom: 4px; }
+  .pp-roll { font-size: 12px; color: #9B6DFF; font-family: 'JetBrains Mono', monospace; margin-bottom: 6px; }
+  .pp-dept { font-size: 13px; color: #6B7280; line-height: 1.5; margin-bottom: 4px; }
+  .pp-institute { font-size: 12px; color: #9B6DFF; font-weight: 500; }
+
+  .pp-contact-list { padding: 16px 20px; border-top: 1px solid #F3F0FF; }
+  .pp-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+    color: #4B5563;
+    border-bottom: 1px solid #F9F7FF;
+  }
+  .pp-contact-item:last-child { border-bottom: none; }
+  .pp-contact-icon {
+    width: 28px; height: 28px;
+    background: #EDE9FF;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: #6C3DE0;
+    flex-shrink: 0;
+  }
+  .pp-social-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid #F3F0FF;
+  }
+  .pp-social-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #E8E3FF;
+    border-radius: 9px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #4B5563;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .pp-social-btn:hover { background: #EDE9FF; border-color: #C4B5FF; color: #6C3DE0; }
+
+  .pp-edit-btn {
+    margin: 0 20px 16px;
+    width: calc(100% - 40px);
+    padding: 10px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: opacity 0.15s;
+    font-family: 'Sora', sans-serif;
+  }
+  .pp-edit-btn:hover { opacity: 0.88; }
+
+  /* Stats card */
+  .pp-stats-card { padding: 20px; }
+  .pp-stats-title { font-size: 12px; font-weight: 600; color: #9B6DFF; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+  .pp-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pp-stat {
+    background: #F9F7FF;
+    border: 1px solid #EDE9FF;
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+  .pp-stat-value { font-size: 22px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .pp-stat-label { font-size: 11px; color: #6B7280; font-weight: 500; }
+  .pp-stat.purple .pp-stat-value { color: #6C3DE0; }
+  .pp-stat.indigo .pp-stat-value { color: #4F46E5; }
+  .pp-stat.green .pp-stat-value { color: #10B981; }
+  .pp-stat.amber .pp-stat-value { color: #F59E0B; }
+
+  /* ── MAIN CONTENT ── */
+  .pp-main { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Tabs */
+  .pp-tabs {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #E8E3FF;
+    padding: 6px;
+    display: flex;
+    gap: 4px;
+  }
+  .pp-tab {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6B7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.15s;
+    font-family: 'Sora', sans-serif;
+  }
+  .pp-tab:hover { background: #F4F1FF; color: #6C3DE0; }
+  .pp-tab.active { background: #EDE9FF; color: #6C3DE0; font-weight: 600; }
+
+  /* Tab content */
+  .pp-tab-content { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Section card */
+  .pp-section { background: #fff; border-radius: 16px; border: 1px solid #E8E3FF; padding: 24px; }
+  .pp-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .pp-section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1A1033;
+  }
+  .pp-section-icon {
+    width: 30px; height: 30px;
+    background: #EDE9FF;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #6C3DE0;
+  }
+  .pp-add-btn {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1.5px dashed #C4B5FF;
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    color: #9B6DFF;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pp-add-btn:hover { background: #EDE9FF; border-color: #6C3DE0; color: #6C3DE0; }
+
+  /* Chart */
+  .pp-chart-wrap {
+    background: #F9F7FF;
+    border-radius: 12px;
+    border: 1px solid #EDE9FF;
+    padding: 20px;
+  }
+  .pp-chart-source { font-size: 11px; color: #9CA3AF; text-align: center; margin-top: 10px; }
+
+  /* Achievement grid */
+  .pp-ach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pp-ach-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: #F9F7FF;
+    border: 1px solid #EDE9FF;
+    border-radius: 12px;
+    transition: all 0.15s;
+    cursor: default;
+  }
+  .pp-ach-item:hover { border-color: #C4B5FF; box-shadow: 0 2px 12px rgba(108,61,224,0.08); }
+  .pp-ach-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pp-ach-name { font-size: 13px; font-weight: 600; color: #1A1033; margin-bottom: 3px; }
+  .pp-ach-meta { font-size: 11px; color: #6B7280; }
+  .pp-ach-badge {
+    margin-left: auto;
+    padding: 3px 8px;
+    background: #EDE9FF;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6C3DE0;
+    white-space: nowrap;
+  }
+
+  /* Empty state */
+  .pp-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9CA3AF;
+  }
+  .pp-empty-icon {
+    width: 48px; height: 48px;
+    background: #F4F1FF;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 12px;
+    color: #C4B5FF;
+  }
+  .pp-empty p { font-size: 13px; }
+
+  /* ── MODAL ── */
+  .pp-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,16,51,0.45);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .pp-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 24px 64px rgba(108,61,224,0.18);
+    animation: modal-in 0.2s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .pp-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .pp-modal-title { font-size: 17px; font-weight: 700; color: #1A1033; text-transform: capitalize; }
+  .pp-modal-close {
+    width: 30px; height: 30px;
+    border: none; background: #F4F1FF;
+    border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #6B7280;
+    transition: all 0.15s;
+  }
+  .pp-modal-close:hover { background: #EDE9FF; color: #6C3DE0; }
+  .pp-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #E8E3FF;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Sora', sans-serif;
+    color: #1A1033;
+    background: #FAFAFE;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  .pp-input:focus { border-color: #9B6DFF; background: #fff; }
+  .pp-input::placeholder { color: #9CA3AF; }
+  .pp-modal-actions { display: flex; gap: 10px; margin-top: 6px; justify-content: flex-end; }
+  .pp-btn-cancel {
+    padding: 9px 18px;
+    border: 1.5px solid #E8E3FF;
+    background: #fff;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.15s;
+  }
+  .pp-btn-cancel:hover { border-color: #C4B5FF; color: #6C3DE0; }
+  .pp-btn-submit {
+    padding: 9px 20px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    transition: opacity 0.15s;
+  }
+  .pp-btn-submit:hover { opacity: 0.88; }
+
+  @media (max-width: 900px) {
+    .pp-body { grid-template-columns: 1fr; }
+    .pp-ach-grid { grid-template-columns: 1fr; }
+    .pp-tabs { overflow-x: auto; }
+    .pp-tab { flex: none; white-space: nowrap; }
+  }
+`;
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -32,494 +510,287 @@ const ProfilePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState("");
   const [formData, setFormData] = useState({});
+  const [theme, setTheme] = useState("light");
+  const handleThemeToggle = () => setTheme(p => p === "light" ? "dark" : "light");
+  const [form] = useState({ name: "Arjun Sharma", role: "Student" });
 
   const spiCpiData = [
-    { sem: "1st Sem", SPI: 8.2, CPI: 8.2 },
-    { sem: "2nd Sem", SPI: 8.8, CPI: 8.4 },
-    { sem: "3rd Sem", SPI: 8.6, CPI: 8.5 },
-    { sem: "4th Sem", SPI: 9.1, CPI: 8.7 },
+    { sem: "Sem 1", SPI: 8.2, CPI: 8.2 },
+    { sem: "Sem 2", SPI: 8.8, CPI: 8.4 },
+    { sem: "Sem 3", SPI: 8.6, CPI: 8.5 },
+    { sem: "Sem 4", SPI: 9.1, CPI: 8.7 },
   ];
 
+  const tabs = [
+    { id: "academic", label: "Academic", icon: BookOpen },
+    { id: "certifications", label: "Certifications", icon: Award },
+    { id: "events", label: "Events", icon: Calendar },
+    { id: "activities", label: "Clubs", icon: Users },
+  ];
+
+  const achievements = [
+    { title: "Dean's List", type: "Academic Excellence", period: "2022–23" },
+    { title: "Merit Scholarship", type: "Financial Award", period: "2021–24" },
+    { title: "Best Project Award", type: "Project Recognition", period: "2023" },
+    { title: "Research Publication", type: "Research Achievement", period: "2024" },
+  ];
+
+  const openModal = (type) => { setModalType(type); setShowModal(true); };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-purple-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="ml-2 text-xl font-semibold text-purple-800">
-                SIHchronize
-              </span>
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-600 hover:text-purple-600">
-                Dashboard
-              </a>
-              <a href="#" className="text-purple-600 font-medium">
-                Profile
-              </a>
-              <a href="#" className="text-gray-600 hover:text-purple-600">
-                Courses
-              </a>
-              <a href="#" className="text-gray-600 hover:text-purple-600">
-                Activities
-              </a>
+    <>
+      <style>{styles}</style>
+      <div className="pp-root">
+        {/* Header */}
+        <header className="pp-header">
+          <div className="pp-header-inner">
+            <a href="#" className="pp-logo">
+              <div className="pp-logo-mark">S</div>
+              <span className="pp-logo-text">SIHchronize</span>
+            </a>
+            <nav className="pp-nav">
+              <a href="#">Dashboard</a>
+              <a href="#" className="active">Profile</a>
+              <a href="#">Courses</a>
+              <a href="#">Activities</a>
             </nav>
-          </div>
-        </div>
-
-        <div className="header-right">
-          <div className="notification-box" title="View notifications">
-            <Bell size={18} />
-          </div>
-
-          <button
-            className="theme-toggle"
-            aria-label="Toggle theme"
-            onClick={handleThemeToggle}
-            title="Toggle Light/Dark"
-          >
-            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
-
-          <div className="admin-info-box">
-            <div className="admin-avatar">HN</div>
-            <div className="admin-text">
-              <p className="admin-name">{form.name}</p>
-              <p className="admin-role">{form.role}</p>
-            </div>
-          </div>
-
-          <button className="logout-btn" title="Logout">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-md border border-purple-100 p-8 mb-8">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
-            {/* Profile Photo */}
-            <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg">
-                <User className="w-12 h-12 text-white" />
-              </div>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
-            </div>
-
-            {/* Basic Info + Edit Button */}
-            <div className="flex-1">
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                    Arjun Sharma
-                  </h1>
-                  <p className="text-lg text-gray-600 mb-2">
-                    Roll No: CSE2021045
-                  </p>
-                  <p className="text-gray-600">
-                    B.Tech Computer Science Engineering • Final Year
-                  </p>
-                  <p className="text-gray-600">
-                    Indian Institute of Technology, Delhi
-                  </p>
-                </div>
-
-                
-
-              <div className="mt-4 flex flex-col lg:flex-row lg:justify-end gap-4">
-                <div className="flex flex-col gap-2">
-                                                      
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span>arjun.sharma@iitd.ac.in</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>+91 98765 43210</span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-2 justify-start lg:justify-end">
-                    <Linkedin className="w-5 h-5 text-purple-600 cursor-pointer hover:text-purple-700" />
-                    <Github className="w-5 h-5 text-gray-700 cursor-pointer hover:text-gray-900" />
-                  </div>
-                  <div className="flex items-center gap-3 mt-2 justify-start lg:justify-end"><Edit className="w-6 h-6 text-green-600 cursor-pointer hover:text-purple-700 transition"
-                     onClick={() => navigate("/profile/edit")}
-                      />
-                
-                  
-                   
-                  </div>
-
-                </div>  
-                              
-              </div>
-             
-              {/* Contact Info */}
-
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-purple-100">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">8.7</div>
-              <div className="text-sm text-gray-600">CGPA</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-indigo-600">142</div>
-              <div className="text-sm text-gray-600">Credits Earned</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-pink-600">94%</div>
-              <div className="text-sm text-gray-600">Attendance</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">15</div>
-              <div className="text-sm text-gray-600">Activities</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="bg-white/80 backdrop-blur-md rounded-t-xl shadow-sm border border-purple-100 border-b-0">
-          <div className="flex overflow-x-auto">
-            {[
-              { id: "academic", label: "Academic Info", icon: BookOpen },
-              { id: "certifications", label: "Certifications", icon: Award },
-              { id: "events", label: "Events & Workshops", icon: Calendar },
-              { id: "activities", label: "Clubs & Activities", icon: Users },
-            ].map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === id
-                    ? "border-purple-600 text-purple-600 bg-purple-50"
-                    : "border-transparent text-gray-600 hover:text-purple-700 hover:bg-purple-50/40"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
+            <div className="pp-header-actions">
+              <button className="pp-icon-btn"><Bell size={16} /></button>
+              <button className="pp-icon-btn" onClick={handleThemeToggle}>
+                {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
-            ))}
+              <div className="pp-user-chip">
+                <div className="pp-avatar-sm">HN</div>
+                <div>
+                  <div className="pp-user-name">{form.name}</div>
+                  <div className="pp-user-role">{form.role}</div>
+                </div>
+              </div>
+              <button className="pp-icon-btn"><LogOut size={16} /></button>
+            </div>
           </div>
-        </div>
+        </header>
 
-        {/* Tab Content */}
-        <div className="bg-white/80 backdrop-blur-md rounded-b-xl shadow-sm border border-purple-100 p-6">
-          {/* Academic Info */}
-          {activeTab === "academic" && (
-            <div className="space-y-6">
-              {/* SPI-CPI Graph */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-purple-600" />
-                  Semester-wise SPI & CPI Graph
-                </h3>
+        {/* Body */}
+        <div className="pp-body">
+          {/* Sidebar */}
+          <aside className="pp-sidebar">
+            {/* Profile card */}
+            <div className="pp-card">
+              <div className="pp-profile-card">
+                <div className="pp-avatar-wrap">
+                  <div className="pp-avatar"><User size={32} color="#fff" /></div>
+                  <div className="pp-online-dot" />
+                </div>
+                <div className="pp-name">Arjun Sharma</div>
+                <div className="pp-roll">CSE2021045</div>
+                <div className="pp-dept">B.Tech Computer Science Engineering · Final Year</div>
+                <div className="pp-institute">IIT Delhi</div>
+              </div>
 
-                <div className="bg-white/70 backdrop-blur-md rounded-2xl border border-purple-100 p-6 shadow-md">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={spiCpiData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E9D8FD" />
-                      <XAxis dataKey="sem" stroke="#7C3AED" />
-                      <YAxis domain={[8, 9.5]} stroke="#7C3AED" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "rgba(255,255,255,0.95)",
-                          border: "1px solid #E9D8FD",
-                          borderRadius: "10px",
-                        }}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="SPI"
-                        stroke="#7C3AED"
-                        strokeWidth={3}
-                        activeDot={{ r: 8 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="CPI"
-                        stroke="#A855F7"
-                        strokeDasharray="4 2"
-                        strokeWidth={3}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                  <p className="text-center text-xs text-gray-500 mt-2">
-                    Source: Office of the Dean Academics
-                  </p>
+              <div className="pp-contact-list">
+                <div className="pp-contact-item">
+                  <span className="pp-contact-icon"><Mail size={13} /></span>
+                  arjun.sharma@iitd.ac.in
+                </div>
+                <div className="pp-contact-item">
+                  <span className="pp-contact-icon"><Phone size={13} /></span>
+                  +91 98765 43210
                 </div>
               </div>
 
-              {/* Achievements */}
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Star className="w-5 h-5 text-yellow-600" />
-                    Academic Achievements
-                  </h3>
-                  <Plus
-                    className="w-5 h-5 text-purple-400 cursor-pointer"
-                    onClick={() => {
-                      setModalType("achievement");
-                      setShowModal(true);
-                    }}
-                  />
-                </div>
+              <div className="pp-social-row">
+                <a href="#" className="pp-social-btn"><Linkedin size={13} /> LinkedIn</a>
+                <a href="#" className="pp-social-btn"><Github size={13} /> GitHub</a>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    {
-                      title: "Dean's List",
-                      period: "2022-2023",
-                      type: "Academic Excellence",
-                    },
-                    {
-                      title: "Merit Scholarship",
-                      period: "2021-2024",
-                      type: "Financial Award",
-                    },
-                    {
-                      title: "Best Project Award",
-                      period: "2023",
-                      type: "Project Recognition",
-                    },
-                    {
-                      title: "Research Paper Publication",
-                      period: "2024",
-                      type: "Research Achievement",
-                    },
-                  ].map((achievement, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 p-4 bg-purple-50 rounded-lg border border-purple-100"
-                    >
-                      <Award className="w-6 h-6 text-purple-600" />
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {achievement.title}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {achievement.type} • {achievement.period}
-                        </div>
+              <button className="pp-edit-btn" onClick={() => navigate("/profile/edit")}>
+                <Edit size={14} /> Edit Profile
+              </button>
+            </div>
+
+            {/* Stats card */}
+            <div className="pp-card">
+              <div className="pp-stats-card">
+                <div className="pp-stats-title">Quick Stats</div>
+                <div className="pp-stats-grid">
+                  <div className="pp-stat purple">
+                    <div className="pp-stat-value">8.7</div>
+                    <div className="pp-stat-label">CGPA</div>
+                  </div>
+                  <div className="pp-stat indigo">
+                    <div className="pp-stat-value">142</div>
+                    <div className="pp-stat-label">Credits</div>
+                  </div>
+                  <div className="pp-stat green">
+                    <div className="pp-stat-value">94%</div>
+                    <div className="pp-stat-label">Attendance</div>
+                  </div>
+                  <div className="pp-stat amber">
+                    <div className="pp-stat-value">15</div>
+                    <div className="pp-stat-label">Activities</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main */}
+          <main className="pp-main">
+            {/* Tabs */}
+            <div className="pp-tabs">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  className={`pp-tab${activeTab === id ? " active" : ""}`}
+                  onClick={() => setActiveTab(id)}
+                >
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="pp-tab-content">
+              {/* Academic */}
+              {activeTab === "academic" && (
+                <>
+                  <div className="pp-section">
+                    <div className="pp-section-header">
+                      <div className="pp-section-title">
+                        <span className="pp-section-icon"><TrendingUp size={15} /></span>
+                        SPI & CPI Trend
                       </div>
                     </div>
-                  ))}
+                    <div className="pp-chart-wrap">
+                      <ResponsiveContainer width="100%" height={260}>
+                        <LineChart data={spiCpiData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#EDE9FF" />
+                          <XAxis dataKey="sem" stroke="#9B6DFF" tick={{ fontSize: 12, fontFamily: 'Sora' }} />
+                          <YAxis domain={[7.8, 9.5]} stroke="#9B6DFF" tick={{ fontSize: 12, fontFamily: 'Sora' }} />
+                          <Tooltip
+                            contentStyle={{
+                              background: "#fff",
+                              border: "1px solid #EDE9FF",
+                              borderRadius: 12,
+                              fontSize: 13,
+                              fontFamily: 'Sora',
+                              boxShadow: "0 4px 20px rgba(108,61,224,0.12)"
+                            }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 13, fontFamily: 'Sora' }} />
+                          <Line type="monotone" dataKey="SPI" stroke="#6C3DE0" strokeWidth={2.5} dot={{ r: 5, fill: "#6C3DE0" }} activeDot={{ r: 7 }} />
+                          <Line type="monotone" dataKey="CPI" stroke="#9B6DFF" strokeDasharray="5 3" strokeWidth={2.5} dot={{ r: 5, fill: "#9B6DFF" }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                      <div className="pp-chart-source">Source: Office of the Dean Academics</div>
+                    </div>
+                  </div>
+
+                  <div className="pp-section">
+                    <div className="pp-section-header">
+                      <div className="pp-section-title">
+                        <span className="pp-section-icon"><Star size={15} /></span>
+                        Academic Achievements
+                      </div>
+                      <button className="pp-add-btn" onClick={() => openModal("achievement")}><Plus size={14} /></button>
+                    </div>
+                    <div className="pp-ach-grid">
+                      {achievements.map((a, i) => (
+                        <div className="pp-ach-item" key={i}>
+                          <div className="pp-ach-icon"><Award size={16} color="#fff" /></div>
+                          <div>
+                            <div className="pp-ach-name">{a.title}</div>
+                            <div className="pp-ach-meta">{a.type}</div>
+                          </div>
+                          <div className="pp-ach-badge">{a.period}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Other tabs */}
+              {["certifications", "events", "activities"].includes(activeTab) && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title">
+                      <span className="pp-section-icon">
+                        {activeTab === "certifications" && <Award size={15} />}
+                        {activeTab === "events" && <Calendar size={15} />}
+                        {activeTab === "activities" && <Users size={15} />}
+                      </span>
+                      {activeTab === "certifications" && "Certifications"}
+                      {activeTab === "events" && "Events & Workshops"}
+                      {activeTab === "activities" && "Clubs & Activities"}
+                    </div>
+                    <button className="pp-add-btn" onClick={() => openModal(activeTab === "activities" ? "club" : activeTab.slice(0, -1))}>
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                  <div className="pp-empty">
+                    <div className="pp-empty-icon">
+                      {activeTab === "certifications" && <Award size={22} />}
+                      {activeTab === "events" && <Calendar size={22} />}
+                      {activeTab === "activities" && <Users size={22} />}
+                    </div>
+                    <p>No entries yet. Click <strong>+</strong> to add one.</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          )}
-
-          {/* Certifications */}
-          {activeTab === "certifications" && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  Certifications
-                </h3>
-                <Plus
-                  className="w-5 h-5 text-purple-400 cursor-pointer"
-                  onClick={() => {
-                    setModalType("certification");
-                    setShowModal(true);
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* List of uploaded certificates can go here */}
-              </div>
-            </div>
-          )}
-
-          {/* Events & Workshops */}
-          {activeTab === "events" && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-purple-600" />
-                  Events & Workshops
-                </h3>
-                <Plus
-                  className="w-5 h-5 text-purple-400 cursor-pointer"
-                  onClick={() => {
-                    setModalType("event");
-                    setShowModal(true);
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* List of events can go here */}
-              </div>
-            </div>
-          )}
-
-          {/* Clubs & Activities */}
-          {activeTab === "activities" && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  Clubs & Activities
-                </h3>
-                <Plus
-                  className="w-5 h-5 text-purple-400 cursor-pointer"
-                  onClick={() => {
-                    setModalType("club");
-                    setShowModal(true);
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* List of clubs can go here */}
-              </div>
-            </div>
-          )}
+          </main>
         </div>
-      </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 capitalize">
-              Add {modalType}
-            </h3>
+        {/* Modal */}
+        {showModal && (
+          <div className="pp-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
+            <div className="pp-modal">
+              <div className="pp-modal-header">
+                <div className="pp-modal-title">Add {modalType}</div>
+                <button className="pp-modal-close" onClick={() => setShowModal(false)}><X size={14} /></button>
+              </div>
 
-            {/* ACHIEVEMENTS */}
-            {modalType === "achievement" && (
-              <>
-                <input
-                  placeholder="Title"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Subtitle"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, subtitle: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Year"
-                  className="w-full border p-2 rounded mb-4"
-                  onChange={(e) =>
-                    setFormData({ ...formData, year: e.target.value })
-                  }
-                />
-              </>
-            )}
+              {modalType === "achievement" && (
+                <>
+                  <input className="pp-input" placeholder="Title" onChange={e => setFormData({ ...formData, title: e.target.value })} />
+                  <input className="pp-input" placeholder="Subtitle / Type" onChange={e => setFormData({ ...formData, subtitle: e.target.value })} />
+                  <input className="pp-input" placeholder="Year" onChange={e => setFormData({ ...formData, year: e.target.value })} />
+                </>
+              )}
+              {modalType === "certification" && (
+                <>
+                  <input className="pp-input" placeholder="Certification Title" onChange={e => setFormData({ ...formData, title: e.target.value })} />
+                  <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="pp-input" onChange={e => setFormData({ ...formData, file: e.target.files[0] })} />
+                </>
+              )}
+              {modalType === "event" && (
+                <>
+                  <input className="pp-input" placeholder="Event Name" onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  <input className="pp-input" placeholder="Your Role" onChange={e => setFormData({ ...formData, role: e.target.value })} />
+                  <input className="pp-input" placeholder="Year" onChange={e => setFormData({ ...formData, year: e.target.value })} />
+                </>
+              )}
+              {modalType === "club" && (
+                <>
+                  <input className="pp-input" placeholder="Club Name" onChange={e => setFormData({ ...formData, club: e.target.value })} />
+                  <input className="pp-input" placeholder="Designation" onChange={e => setFormData({ ...formData, designation: e.target.value })} />
+                  <input className="pp-input" placeholder="Duration (e.g. 2022–24)" onChange={e => setFormData({ ...formData, duration: e.target.value })} />
+                </>
+              )}
 
-            {/* CERTIFICATIONS */}
-            {modalType === "certification" && (
-              <>
-                <input
-                  placeholder="Certification Title"
-                  className="w-full border p-2 rounded mb-3"
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                />
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-                  className="mb-4"
-                  onChange={(e) =>
-                    setFormData({ ...formData, file: e.target.files[0] })
-                  }
-                />
-              </>
-            )}
-
-            {/* EVENTS */}
-            {modalType === "event" && (
-              <>
-                <input
-                  placeholder="Event Name"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Role"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Year"
-                  className="w-full border p-2 rounded mb-4"
-                  onChange={(e) =>
-                    setFormData({ ...formData, year: e.target.value })
-                  }
-                />
-              </>
-            )}
-
-            {/* CLUBS */}
-            {modalType === "club" && (
-              <>
-                <input
-                  placeholder="Club Name"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, club: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Designation"
-                  className="w-full border p-2 rounded mb-2"
-                  onChange={(e) =>
-                    setFormData({ ...formData, designation: e.target.value })
-                  }
-                />
-                <input
-                  placeholder="Duration"
-                  className="w-full border p-2 rounded mb-4"
-                  onChange={(e) =>
-                    setFormData({ ...formData, duration: e.target.value })
-                  }
-                />
-              </>
-            )}
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  console.log(formData); // later connect to backend
-                  setShowModal(false);
-                  setFormData({});
-                }}
-                className="bg-purple-600 text-white px-4 py-2 rounded text-sm"
-              >
-                Add
-              </button>
+              <div className="pp-modal-actions">
+                <button className="pp-btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
+                <button className="pp-btn-submit" onClick={() => { console.log(formData); setShowModal(false); setFormData({}); }}>
+                  Add Entry
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 
