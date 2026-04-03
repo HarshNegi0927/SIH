@@ -1,4 +1,3 @@
-
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 
@@ -372,5 +371,213 @@ exports.resolveCPI = async (req, res) => {
       success: false, 
       message: "Server error while calculating CPI" 
     });
+  }
+};
+
+
+// ============================================================
+// NEW ENDPOINTS — added for ProfilePage frontend tabs
+// (Students only: certifications, events, clubs)
+// ============================================================
+
+// ------------------------------------
+// ADD Certification
+// POST body: { title, issuedBy, issuedDate, fileUrl }
+// ------------------------------------
+exports.addCertification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can add certifications" });
+
+    const { title, issuedBy, issuedDate, fileUrl } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Certification title is required" });
+
+    if (!user.certifications) user.certifications = [];
+
+    const newCert = {
+      title,
+      issuedBy: issuedBy || "",
+      issuedDate: issuedDate || null,
+      fileUrl: fileUrl || "",
+      addedAt: new Date(),
+    };
+
+    user.certifications.push(newCert);
+    user.markModified("certifications");
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Certification added successfully",
+      data: user.certifications,
+    });
+  } catch (error) {
+    console.error("Add certification error:", error);
+    res.status(500).json({ success: false, message: "Server error while adding certification" });
+  }
+};
+
+// ------------------------------------
+// DELETE Certification
+// PARAM: certId (index or _id depending on your schema)
+// ------------------------------------
+exports.deleteCertification = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can delete certifications" });
+
+    const { certId } = req.params;
+    if (!user.certifications) return res.status(404).json({ success: false, message: "No certifications found" });
+
+    const before = user.certifications.length;
+    user.certifications = user.certifications.filter(c => c._id?.toString() !== certId);
+
+    if (user.certifications.length === before) {
+      return res.status(404).json({ success: false, message: "Certification not found" });
+    }
+
+    user.markModified("certifications");
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Certification deleted", data: user.certifications });
+  } catch (error) {
+    console.error("Delete certification error:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting certification" });
+  }
+};
+
+// ------------------------------------
+// ADD Event / Workshop
+// POST body: { name, role, year, description }
+// ------------------------------------
+exports.addEvent = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can add events" });
+
+    const { name, role, year, description } = req.body;
+    if (!name) return res.status(400).json({ success: false, message: "Event name is required" });
+
+    if (!user.events) user.events = [];
+
+    user.events.push({
+      name,
+      role: role || "",
+      year: year || "",
+      description: description || "",
+      addedAt: new Date(),
+    });
+
+    user.markModified("events");
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Event added successfully",
+      data: user.events,
+    });
+  } catch (error) {
+    console.error("Add event error:", error);
+    res.status(500).json({ success: false, message: "Server error while adding event" });
+  }
+};
+
+// ------------------------------------
+// DELETE Event
+// PARAM: eventId
+// ------------------------------------
+exports.deleteEvent = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can delete events" });
+
+    const { eventId } = req.params;
+    if (!user.events) return res.status(404).json({ success: false, message: "No events found" });
+
+    const before = user.events.length;
+    user.events = user.events.filter(e => e._id?.toString() !== eventId);
+
+    if (user.events.length === before) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    user.markModified("events");
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Event deleted", data: user.events });
+  } catch (error) {
+    console.error("Delete event error:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting event" });
+  }
+};
+
+// ------------------------------------
+// ADD Club / Activity
+// POST body: { club, designation, duration, description }
+// ------------------------------------
+exports.addClub = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can add clubs" });
+
+    const { club, designation, duration, description } = req.body;
+    if (!club) return res.status(400).json({ success: false, message: "Club name is required" });
+
+    if (!user.clubs) user.clubs = [];
+
+    user.clubs.push({
+      club,
+      designation: designation || "",
+      duration: duration || "",
+      description: description || "",
+      addedAt: new Date(),
+    });
+
+    user.markModified("clubs");
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Club added successfully",
+      data: user.clubs,
+    });
+  } catch (error) {
+    console.error("Add club error:", error);
+    res.status(500).json({ success: false, message: "Server error while adding club" });
+  }
+};
+
+// ------------------------------------
+// DELETE Club
+// PARAM: clubId
+// ------------------------------------
+exports.deleteClub = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Only students can delete clubs" });
+
+    const { clubId } = req.params;
+    if (!user.clubs) return res.status(404).json({ success: false, message: "No clubs found" });
+
+    const before = user.clubs.length;
+    user.clubs = user.clubs.filter(c => c._id?.toString() !== clubId);
+
+    if (user.clubs.length === before) {
+      return res.status(404).json({ success: false, message: "Club not found" });
+    }
+
+    user.markModified("clubs");
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Club deleted", data: user.clubs });
+  } catch (error) {
+    console.error("Delete club error:", error);
+    res.status(500).json({ success: false, message: "Server error while deleting club" });
   }
 };

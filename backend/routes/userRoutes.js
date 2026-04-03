@@ -4,17 +4,28 @@ const { requireAuth } = require("../middleware/auth");
 const { body } = require("express-validator");
 const validate = require("../middleware/validate");
 
-// Import controller
+// ------------------------------------
+// Import controllers
+// ------------------------------------
 const {
   getProfile,
   updateProfile,
   updatePassword,
   updateProfileImage,
   updateAcademicInfo,
-  resolveCPI
+  resolveCPI,
+  // student extras
+  addCertification,
+  deleteCertification,
+  addEvent,
+  deleteEvent,
+  addClub,
+  deleteClub,
 } = require("../controllers/userController");
 
+// ------------------------------------
 // Validation middleware
+// ------------------------------------
 const profileValidation = [
   body("profile.firstName")
     .optional()
@@ -50,16 +61,37 @@ const passwordValidation = [
     .isLength({ min: 8 })
     .withMessage("New password must be at least 8 characters")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/)
-    .withMessage("Password must contain uppercase, lowercase, number, and special character"),
+    .withMessage(
+      "Password must contain uppercase, lowercase, number, and special character"
+    ),
 ];
 
-// Routes
-router.get("/profile", requireAuth, getProfile);
-router.put("/profile", requireAuth, profileValidation, validate, updateProfile);
-router.put("/profile/password", requireAuth, passwordValidation, validate, updatePassword);
-router.put("/profile/image", requireAuth, updateProfileImage);
-router.put("/profile/academic", requireAuth, updateAcademicInfo);
-router.post("/profile/resolve-cpi", requireAuth, resolveCPI);
+// ------------------------------------
+// Profile routes
+// ------------------------------------
+router.get("/profile",                requireAuth, getProfile);
+router.put("/profile",                requireAuth, profileValidation, validate, updateProfile);
+router.put("/profile/password",       requireAuth, passwordValidation, validate, updatePassword);
+router.put("/profile/image",          requireAuth, updateProfileImage);
+router.put("/profile/academic",       requireAuth, updateAcademicInfo);
+router.post("/profile/resolve-cpi",   requireAuth, resolveCPI);
+
+// ------------------------------------
+// Certifications (students only)
+// ------------------------------------
+router.post("/certifications",              requireAuth, addCertification);
+router.delete("/certifications/:certId",    requireAuth, deleteCertification);
+
+// ------------------------------------
+// Events / Workshops (students only)
+// ------------------------------------
+router.post("/events",                      requireAuth, addEvent);
+router.delete("/events/:eventId",           requireAuth, deleteEvent);
+
+// ------------------------------------
+// Clubs / Activities (students only)
+// ------------------------------------
+router.post("/clubs",                       requireAuth, addClub);
+router.delete("/clubs/:clubId",             requireAuth, deleteClub);
 
 module.exports = router;
-

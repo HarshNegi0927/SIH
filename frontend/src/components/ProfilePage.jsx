@@ -1,28 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   User, Mail, Phone, Github, Linkedin, Award, BookOpen,
   Users, Calendar, Star, TrendingUp, Edit, Plus,
-  Bell, Moon, Sun, LogOut, X, ChevronRight,
+  Bell, Moon, Sun, LogOut, X, Trash2, Loader,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
-const COLORS = {
-  primary: "#6C3DE0",
-  primaryLight: "#EDE9FF",
-  primaryMid: "#9B6DFF",
-  accent: "#F59E0B",
-  accentGreen: "#10B981",
-  accentPink: "#EC4899",
-  text: "#1A1033",
-  textMuted: "#6B7280",
-  border: "#E8E3FF",
-  cardBg: "#FFFFFF",
-  pageBg: "#F4F1FF",
-};
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -36,7 +24,6 @@ const styles = `
     color: #1A1033;
   }
 
-  /* ── HEADER ── */
   .pp-header {
     background: #fff;
     border-bottom: 1px solid #E8E3FF;
@@ -71,13 +58,11 @@ const styles = `
     color: #fff;
     font-weight: 700;
     font-size: 16px;
-    letter-spacing: -0.5px;
   }
   .pp-logo-text {
     font-size: 18px;
     font-weight: 700;
     color: #1A1033;
-    letter-spacing: -0.3px;
   }
   .pp-nav {
     display: flex;
@@ -136,11 +121,12 @@ const styles = `
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
+  .pp-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
   .pp-user-name { font-size: 13px; font-weight: 600; color: #1A1033; }
   .pp-user-role { font-size: 11px; color: #9B6DFF; }
 
-  /* ── PAGE BODY ── */
   .pp-body {
     max-width: 1200px;
     margin: 0 auto;
@@ -151,7 +137,6 @@ const styles = `
     align-items: start;
   }
 
-  /* ── SIDEBAR ── */
   .pp-sidebar { display: flex; flex-direction: column; gap: 16px; }
 
   .pp-card {
@@ -191,7 +176,9 @@ const styles = `
     box-shadow: 0 4px 20px rgba(108,61,224,0.25);
     position: relative;
     z-index: 1;
+    overflow: hidden;
   }
+  .pp-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .pp-online-dot {
     position: absolute;
     bottom: 3px; right: 3px;
@@ -270,9 +257,15 @@ const styles = `
   }
   .pp-edit-btn:hover { opacity: 0.88; }
 
-  /* Stats card */
   .pp-stats-card { padding: 20px; }
-  .pp-stats-title { font-size: 12px; font-weight: 600; color: #9B6DFF; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+  .pp-stats-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9B6DFF;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
   .pp-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pp-stat {
     background: #F9F7FF;
@@ -285,13 +278,11 @@ const styles = `
   .pp-stat-label { font-size: 11px; color: #6B7280; font-weight: 500; }
   .pp-stat.purple .pp-stat-value { color: #6C3DE0; }
   .pp-stat.indigo .pp-stat-value { color: #4F46E5; }
-  .pp-stat.green .pp-stat-value { color: #10B981; }
-  .pp-stat.amber .pp-stat-value { color: #F59E0B; }
+  .pp-stat.green  .pp-stat-value { color: #10B981; }
+  .pp-stat.amber  .pp-stat-value { color: #F59E0B; }
 
-  /* ── MAIN CONTENT ── */
   .pp-main { display: flex; flex-direction: column; gap: 16px; }
 
-  /* Tabs */
   .pp-tabs {
     background: #fff;
     border-radius: 14px;
@@ -320,11 +311,14 @@ const styles = `
   .pp-tab:hover { background: #F4F1FF; color: #6C3DE0; }
   .pp-tab.active { background: #EDE9FF; color: #6C3DE0; font-weight: 600; }
 
-  /* Tab content */
   .pp-tab-content { display: flex; flex-direction: column; gap: 16px; }
 
-  /* Section card */
-  .pp-section { background: #fff; border-radius: 16px; border: 1px solid #E8E3FF; padding: 24px; }
+  .pp-section {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #E8E3FF;
+    padding: 24px;
+  }
   .pp-section-header {
     display: flex;
     align-items: center;
@@ -358,7 +352,6 @@ const styles = `
   }
   .pp-add-btn:hover { background: #EDE9FF; border-color: #6C3DE0; color: #6C3DE0; }
 
-  /* Chart */
   .pp-chart-wrap {
     background: #F9F7FF;
     border-radius: 12px;
@@ -367,7 +360,6 @@ const styles = `
   }
   .pp-chart-source { font-size: 11px; color: #9CA3AF; text-align: center; margin-top: 10px; }
 
-  /* Achievement grid */
   .pp-ach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pp-ach-item {
     display: flex;
@@ -378,7 +370,6 @@ const styles = `
     border: 1px solid #EDE9FF;
     border-radius: 12px;
     transition: all 0.15s;
-    cursor: default;
   }
   .pp-ach-item:hover { border-color: #C4B5FF; box-shadow: 0 2px 12px rgba(108,61,224,0.08); }
   .pp-ach-icon {
@@ -401,7 +392,42 @@ const styles = `
     white-space: nowrap;
   }
 
-  /* Empty state */
+  .pp-list { display: flex; flex-direction: column; gap: 10px; }
+  .pp-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: #F9F7FF;
+    border: 1px solid #EDE9FF;
+    border-radius: 12px;
+    transition: all 0.15s;
+  }
+  .pp-list-item:hover { border-color: #C4B5FF; box-shadow: 0 2px 12px rgba(108,61,224,0.08); }
+  .pp-list-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #6C3DE0, #9B6DFF);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pp-list-body { flex: 1; min-width: 0; }
+  .pp-list-name { font-size: 13px; font-weight: 600; color: #1A1033; margin-bottom: 3px; }
+  .pp-list-meta { font-size: 11px; color: #6B7280; }
+  .pp-list-desc { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
+  .pp-delete-btn {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    border: 1px solid #FDE8E8;
+    background: #FFF5F5;
+    display: flex; align-items: center; justify-content: center;
+    color: #EF4444;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .pp-delete-btn:hover { background: #FEE2E2; border-color: #FCA5A5; }
+
   .pp-empty {
     text-align: center;
     padding: 40px 20px;
@@ -417,7 +443,6 @@ const styles = `
   }
   .pp-empty p { font-size: 13px; }
 
-  /* ── MODAL ── */
   .pp-modal-overlay {
     position: fixed; inset: 0;
     background: rgba(26,16,51,0.45);
@@ -437,7 +462,7 @@ const styles = `
   }
   @keyframes modal-in {
     from { opacity: 0; transform: scale(0.95) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
   }
   .pp-modal-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -449,10 +474,10 @@ const styles = `
     border: none; background: #F4F1FF;
     border-radius: 8px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    color: #6B7280;
-    transition: all 0.15s;
+    color: #6B7280; transition: all 0.15s;
   }
   .pp-modal-close:hover { background: #EDE9FF; color: #6C3DE0; }
+
   .pp-input {
     width: 100%;
     padding: 10px 14px;
@@ -468,7 +493,21 @@ const styles = `
   }
   .pp-input:focus { border-color: #9B6DFF; background: #fff; }
   .pp-input::placeholder { color: #9CA3AF; }
-  .pp-modal-actions { display: flex; gap: 10px; margin-top: 6px; justify-content: flex-end; }
+
+  .pp-error {
+    font-size: 12px;
+    color: #EF4444;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #FFF5F5;
+    border-radius: 8px;
+    border: 1px solid #FEE2E2;
+  }
+
+  .pp-modal-actions {
+    display: flex; gap: 10px;
+    margin-top: 6px; justify-content: flex-end;
+  }
   .pp-btn-cancel {
     padding: 9px 18px;
     border: 1.5px solid #E8E3FF;
@@ -492,9 +531,45 @@ const styles = `
     color: #fff;
     cursor: pointer;
     font-family: 'Sora', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     transition: opacity 0.15s;
   }
   .pp-btn-submit:hover { opacity: 0.88; }
+  .pp-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .pp-global-error {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 24px;
+  }
+  .pp-global-error-box {
+    background: #FFF5F5;
+    border: 1px solid #FEE2E2;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .pp-global-error-text { font-size: 14px; color: #EF4444; font-weight: 500; }
+  .pp-retry-btn {
+    padding: 8px 16px;
+    background: #EF4444;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    white-space: nowrap;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pp-spin { animation: spin 1s linear infinite; }
 
   @media (max-width: 900px) {
     .pp-body { grid-template-columns: 1fr; }
@@ -504,105 +579,342 @@ const styles = `
   }
 `;
 
+// ── Auth helper — reads JWT from localStorage ─────────────────
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+});
+
+// ── Derive initials from profile object ───────────────────────
+const getInitials = (profile) => {
+  if (!profile) return "??";
+  const f = profile.profile?.firstName?.[0] || "";
+  const l = profile.profile?.lastName?.[0] || "";
+  if (f || l) return (f + l).toUpperCase();
+  return profile.email?.[0]?.toUpperCase() || "?";
+};
+
+// ── Reusable list item card ───────────────────────────────────
+const ListItem = ({ icon: Icon, name, meta, desc, onDelete }) => (
+  <div className="pp-list-item">
+    <div className="pp-list-icon">
+      <Icon size={16} color="#fff" />
+    </div>
+    <div className="pp-list-body">
+      <div className="pp-list-name">{name}</div>
+      {meta && <div className="pp-list-meta">{meta}</div>}
+      {desc && <div className="pp-list-desc">{desc}</div>}
+    </div>
+    <button className="pp-delete-btn" onClick={onDelete} title="Remove">
+      <Trash2 size={12} />
+    </button>
+  </div>
+);
+
+// ── Empty state ───────────────────────────────────────────────
+const EmptyState = ({ icon: Icon, label }) => (
+  <div className="pp-empty">
+    <div className="pp-empty-icon"><Icon size={22} /></div>
+    <p>No {label} yet. Click <strong>+</strong> to add one.</p>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("academic");
-  const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [formData, setFormData] = useState({});
-  const [theme, setTheme] = useState("light");
-  const handleThemeToggle = () => setTheme(p => p === "light" ? "dark" : "light");
-  const [form] = useState({ name: "Arjun Sharma", role: "Student" });
 
-  const spiCpiData = [
-    { sem: "Sem 1", SPI: 8.2, CPI: 8.2 },
-    { sem: "Sem 2", SPI: 8.8, CPI: 8.4 },
-    { sem: "Sem 3", SPI: 8.6, CPI: 8.5 },
-    { sem: "Sem 4", SPI: 9.1, CPI: 8.7 },
-  ];
+  // UI state
+  const [activeTab, setActiveTab]   = useState("academic");
+  const [theme, setTheme]           = useState("light");
 
+  // Server / data state
+  const [profile, setProfile]       = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [globalError, setGlobalError] = useState("");
+
+  // Modal state
+  const [showModal, setShowModal]   = useState(false);
+  const [modalType, setModalType]   = useState("");   // "certification" | "event" | "club"
+  const [formData, setFormData]     = useState({});
+  const [formError, setFormError]   = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // ── Fetch profile ───────────────────────────────────────────
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    setGlobalError("");
+    try {
+      const res  = await fetch(`${API}/profile`, { headers: authHeaders() });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || "Failed to load profile");
+      setProfile(json.data);
+    } catch (err) {
+      setGlobalError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchProfile(); }, [fetchProfile]);
+
+  // ── Derived values ──────────────────────────────────────────
+  const fullName = profile
+    ? [profile.profile?.firstName, profile.profile?.lastName].filter(Boolean).join(" ") || profile.email
+    : "";
+
+  const academicInfo    = profile?.academicInfo    ?? {};
+  const certifications  = profile?.certifications  ?? [];
+  const events          = profile?.events          ?? [];
+  const clubs           = profile?.clubs           ?? [];
+  const achievements    = academicInfo?.achievements ?? [];
+
+  const spiCpiData = (academicInfo?.pastSemesters ?? []).map((s, i) => ({
+    sem: `Sem ${s.semesterNumber ?? i + 1}`,
+    SPI: s.sgpa        ?? 0,
+    CPI: academicInfo.cgpa ?? 0,
+  }));
+
+  // ── Modal helpers ───────────────────────────────────────────
+  const openModal = (type) => {
+    setModalType(type);
+    setFormData({});
+    setFormError("");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setFormData({});
+    setFormError("");
+  };
+
+  const handleInput = (field) => (e) =>
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+
+  // ── Submit: add cert / event / club ─────────────────────────
+  const endpointOf = { certification: "/certifications", event: "/events", club: "/clubs" };
+  const stateKeyOf = { certification: "certifications", event: "events", club: "clubs" };
+  const requiredField = { certification: "title", event: "name", club: "club" };
+
+  const handleSubmit = async () => {
+    const reqField = requiredField[modalType];
+    if (!formData[reqField]?.trim()) {
+      setFormError(`${reqField.charAt(0).toUpperCase() + reqField.slice(1)} is required`);
+      return;
+    }
+    setSubmitting(true);
+    setFormError("");
+    try {
+      const res  = await fetch(`${API}${endpointOf[modalType]}`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || "Something went wrong");
+      // Backend returns the updated full array — swap it in
+      setProfile((prev) => ({ ...prev, [stateKeyOf[modalType]]: json.data }));
+      closeModal();
+    } catch (err) {
+      setFormError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ── Delete: remove cert / event / club ──────────────────────
+  const paramOf = { certification: "certId", event: "eventId", club: "clubId" };
+
+  const handleDelete = async (type, id) => {
+    if (!window.confirm("Remove this entry?")) return;
+    try {
+      const res  = await fetch(`${API}${endpointOf[type]}/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message || "Delete failed");
+      setProfile((prev) => ({ ...prev, [stateKeyOf[type]]: json.data }));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ── Tabs config ─────────────────────────────────────────────
   const tabs = [
-    { id: "academic", label: "Academic", icon: BookOpen },
-    { id: "certifications", label: "Certifications", icon: Award },
-    { id: "events", label: "Events", icon: Calendar },
-    { id: "activities", label: "Clubs", icon: Users },
+    { id: "academic",       label: "Academic",       icon: BookOpen  },
+    { id: "certifications", label: "Certifications", icon: Award     },
+    { id: "events",         label: "Events",         icon: Calendar  },
+    { id: "activities",     label: "Clubs",          icon: Users     },
   ];
 
-  const achievements = [
-    { title: "Dean's List", type: "Academic Excellence", period: "2022–23" },
-    { title: "Merit Scholarship", type: "Financial Award", period: "2021–24" },
-    { title: "Best Project Award", type: "Project Recognition", period: "2023" },
-    { title: "Research Publication", type: "Research Achievement", period: "2024" },
-  ];
+  // ── Full-page loading spinner ────────────────────────────────
+  if (loading) return (
+    <>
+      <style>{styles}</style>
+      <div className="pp-root" style={{
+        display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", flexDirection: "column", gap: 16,
+      }}>
+        <Loader size={36} color="#6C3DE0" className="pp-spin" />
+        <span style={{ fontSize: 14, color: "#6B7280" }}>Loading your profile…</span>
+      </div>
+    </>
+  );
 
-  const openModal = (type) => { setModalType(type); setShowModal(true); };
-
+  // ─────────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────────
   return (
     <>
       <style>{styles}</style>
       <div className="pp-root">
-        {/* Header */}
+
+        {/* ══════════════ HEADER ══════════════ */}
         <header className="pp-header">
           <div className="pp-header-inner">
             <a href="#" className="pp-logo">
               <div className="pp-logo-mark">S</div>
               <span className="pp-logo-text">SIHchronize</span>
             </a>
+
             <nav className="pp-nav">
               <a href="#">Dashboard</a>
               <a href="#" className="active">Profile</a>
               <a href="#">Courses</a>
               <a href="#">Activities</a>
             </nav>
+
             <div className="pp-header-actions">
-              <button className="pp-icon-btn"><Bell size={16} /></button>
-              <button className="pp-icon-btn" onClick={handleThemeToggle}>
+              <button className="pp-icon-btn" title="Notifications">
+                <Bell size={16} />
+              </button>
+              <button
+                className="pp-icon-btn"
+                title="Toggle theme"
+                onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
+              >
                 {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
               </button>
+
               <div className="pp-user-chip">
-                <div className="pp-avatar-sm">HN</div>
+                <div className="pp-avatar-sm">
+                  {profile?.profile?.profileImage
+                    ? <img src={profile.profile.profileImage} alt="avatar" />
+                    : getInitials(profile)
+                  }
+                </div>
                 <div>
-                  <div className="pp-user-name">{form.name}</div>
-                  <div className="pp-user-role">{form.role}</div>
+                  <div className="pp-user-name">{fullName || "—"}</div>
+                  <div className="pp-user-role" style={{ textTransform: "capitalize" }}>
+                    {profile?.role || ""}
+                  </div>
                 </div>
               </div>
-              <button className="pp-icon-btn"><LogOut size={16} /></button>
+
+              <button className="pp-icon-btn" title="Log out">
+                <LogOut size={16} />
+              </button>
             </div>
           </div>
         </header>
 
-        {/* Body */}
+        {/* Global error banner */}
+        {globalError && (
+          <div className="pp-global-error">
+            <div className="pp-global-error-box">
+              <span className="pp-global-error-text">⚠ {globalError}</span>
+              <button className="pp-retry-btn" onClick={fetchProfile}>Retry</button>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════ BODY ══════════════ */}
         <div className="pp-body">
-          {/* Sidebar */}
+
+          {/* ─── SIDEBAR ─── */}
           <aside className="pp-sidebar">
+
             {/* Profile card */}
             <div className="pp-card">
               <div className="pp-profile-card">
                 <div className="pp-avatar-wrap">
-                  <div className="pp-avatar"><User size={32} color="#fff" /></div>
+                  <div className="pp-avatar">
+                    {profile?.profile?.profileImage
+                      ? <img src={profile.profile.profileImage} alt="Profile" />
+                      : <User size={32} color="#fff" />
+                    }
+                  </div>
                   <div className="pp-online-dot" />
                 </div>
-                <div className="pp-name">Arjun Sharma</div>
-                <div className="pp-roll">CSE2021045</div>
-                <div className="pp-dept">B.Tech Computer Science Engineering · Final Year</div>
-                <div className="pp-institute">IIT Delhi</div>
+                <div className="pp-name">{fullName || "—"}</div>
+                <div className="pp-roll">{profile?.RegistrationNo || ""}</div>
+                <div className="pp-dept">
+                  {[academicInfo.program, academicInfo.department].filter(Boolean).join(" · ") || "—"}
+                </div>
+                <div className="pp-institute">
+                  {profile?.institutionInfo?.collegeName || ""}
+                </div>
               </div>
 
+              {/* Contact */}
               <div className="pp-contact-list">
-                <div className="pp-contact-item">
-                  <span className="pp-contact-icon"><Mail size={13} /></span>
-                  arjun.sharma@iitd.ac.in
-                </div>
-                <div className="pp-contact-item">
-                  <span className="pp-contact-icon"><Phone size={13} /></span>
-                  +91 98765 43210
-                </div>
+                {profile?.email && (
+                  <div className="pp-contact-item">
+                    <span className="pp-contact-icon"><Mail size={13} /></span>
+                    {profile.email}
+                  </div>
+                )}
+                {profile?.profile?.institutionEmail && (
+                  <div className="pp-contact-item">
+                    <span className="pp-contact-icon"><Mail size={13} /></span>
+                    {profile.profile.institutionEmail}
+                  </div>
+                )}
+                {profile?.profile?.phone && (
+                  <div className="pp-contact-item">
+                    <span className="pp-contact-icon"><Phone size={13} /></span>
+                    {profile.profile.phone}
+                  </div>
+                )}
               </div>
 
-              <div className="pp-social-row">
-                <a href="#" className="pp-social-btn"><Linkedin size={13} /> LinkedIn</a>
-                <a href="#" className="pp-social-btn"><Github size={13} /> GitHub</a>
-              </div>
+              {/* Social links */}
+              {(profile?.profile?.socialLinks?.linkedin || profile?.profile?.socialLinks?.github) && (
+                <div className="pp-social-row">
+                  {profile.profile.socialLinks.linkedin && (
+                    <a
+                      href={profile.profile.socialLinks.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pp-social-btn"
+                    >
+                      <Linkedin size={13} /> LinkedIn
+                    </a>
+                  )}
+                  {profile.profile.socialLinks.github && (
+                    <a
+                      href={profile.profile.socialLinks.github}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pp-social-btn"
+                    >
+                      <Github size={13} /> GitHub
+                    </a>
+                  )}
+                  {profile.profile.socialLinks.portfolio && (
+                    <a
+                      href={profile.profile.socialLinks.portfolio}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="pp-social-btn"
+                    >
+                      🌐 Portfolio
+                    </a>
+                  )}
+                </div>
+              )}
 
               <button className="pp-edit-btn" onClick={() => navigate("/profile/edit")}>
                 <Edit size={14} /> Edit Profile
@@ -615,19 +927,27 @@ const ProfilePage = () => {
                 <div className="pp-stats-title">Quick Stats</div>
                 <div className="pp-stats-grid">
                   <div className="pp-stat purple">
-                    <div className="pp-stat-value">8.7</div>
+                    <div className="pp-stat-value">
+                      {academicInfo.cgpa != null ? academicInfo.cgpa.toFixed(2) : "—"}
+                    </div>
                     <div className="pp-stat-label">CGPA</div>
                   </div>
                   <div className="pp-stat indigo">
-                    <div className="pp-stat-value">142</div>
+                    <div className="pp-stat-value">
+                      {academicInfo.totalCreditsEarned ?? "—"}
+                    </div>
                     <div className="pp-stat-label">Credits</div>
                   </div>
                   <div className="pp-stat green">
-                    <div className="pp-stat-value">94%</div>
-                    <div className="pp-stat-label">Attendance</div>
+                    <div className="pp-stat-value">
+                      {academicInfo.currentSemester ? `Sem ${academicInfo.currentSemester}` : "—"}
+                    </div>
+                    <div className="pp-stat-label">Current</div>
                   </div>
                   <div className="pp-stat amber">
-                    <div className="pp-stat-value">15</div>
+                    <div className="pp-stat-value">
+                      {certifications.length + events.length + clubs.length}
+                    </div>
                     <div className="pp-stat-label">Activities</div>
                   </div>
                 </div>
@@ -635,8 +955,9 @@ const ProfilePage = () => {
             </div>
           </aside>
 
-          {/* Main */}
+          {/* ─── MAIN ─── */}
           <main className="pp-main">
+
             {/* Tabs */}
             <div className="pp-tabs">
               {tabs.map(({ id, label, icon: Icon }) => (
@@ -650,145 +971,223 @@ const ProfilePage = () => {
               ))}
             </div>
 
-            {/* Tab Content */}
+            {/* Tab content */}
             <div className="pp-tab-content">
-              {/* Academic */}
+
+              {/* ══ ACADEMIC TAB ══ */}
               {activeTab === "academic" && (
                 <>
-                  <div className="pp-section">
-                    <div className="pp-section-header">
-                      <div className="pp-section-title">
-                        <span className="pp-section-icon"><TrendingUp size={15} /></span>
-                        SPI & CPI Trend
+                  {/* SPI / CPI chart — only if there is semester data */}
+                  {spiCpiData.length > 0 && (
+                    <div className="pp-section">
+                      <div className="pp-section-header">
+                        <div className="pp-section-title">
+                          <span className="pp-section-icon"><TrendingUp size={15} /></span>
+                          SPI &amp; CPI Trend
+                        </div>
+                      </div>
+                      <div className="pp-chart-wrap">
+                        <ResponsiveContainer width="100%" height={260}>
+                          <LineChart data={spiCpiData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#EDE9FF" />
+                            <XAxis
+                              dataKey="sem"
+                              stroke="#9B6DFF"
+                              tick={{ fontSize: 12, fontFamily: "Sora" }}
+                            />
+                            <YAxis
+                              domain={[5, 10]}
+                              stroke="#9B6DFF"
+                              tick={{ fontSize: 12, fontFamily: "Sora" }}
+                            />
+                            <Tooltip
+                              contentStyle={{
+                                background: "#fff",
+                                border: "1px solid #EDE9FF",
+                                borderRadius: 12,
+                                fontSize: 13,
+                                fontFamily: "Sora",
+                              }}
+                            />
+                            <Legend />
+                            <Line type="monotone" dataKey="SPI" stroke="#9B6DFF" strokeWidth={2} />
+                            <Line type="monotone" dataKey="CPI" stroke="#4F46E5" strokeWidth={2} />
+                          </LineChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
-                    <div className="pp-chart-wrap">
-                      <ResponsiveContainer width="100%" height={260}>
-                        <LineChart data={spiCpiData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#EDE9FF" />
-                          <XAxis dataKey="sem" stroke="#9B6DFF" tick={{ fontSize: 12, fontFamily: 'Sora' }} />
-                          <YAxis domain={[7.8, 9.5]} stroke="#9B6DFF" tick={{ fontSize: 12, fontFamily: 'Sora' }} />
-                          <Tooltip
-                            contentStyle={{
-                              background: "#fff",
-                              border: "1px solid #EDE9FF",
-                              borderRadius: 12,
-                              fontSize: 13,
-                              fontFamily: 'Sora',
-                              boxShadow: "0 4px 20px rgba(108,61,224,0.12)"
-                            }}
-                          />
-                          <Legend wrapperStyle={{ fontSize: 13, fontFamily: 'Sora' }} />
-                          <Line type="monotone" dataKey="SPI" stroke="#6C3DE0" strokeWidth={2.5} dot={{ r: 5, fill: "#6C3DE0" }} activeDot={{ r: 7 }} />
-                          <Line type="monotone" dataKey="CPI" stroke="#9B6DFF" strokeDasharray="5 3" strokeWidth={2.5} dot={{ r: 5, fill: "#9B6DFF" }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                      <div className="pp-chart-source">Source: Office of the Dean Academics</div>
-                    </div>
-                  </div>
+                  )}
 
+                  {/* Achievements section */}
                   <div className="pp-section">
                     <div className="pp-section-header">
                       <div className="pp-section-title">
                         <span className="pp-section-icon"><Star size={15} /></span>
-                        Academic Achievements
+                        Achievements
                       </div>
-                      <button className="pp-add-btn" onClick={() => openModal("achievement")}><Plus size={14} /></button>
                     </div>
-                    <div className="pp-ach-grid">
-                      {achievements.map((a, i) => (
-                        <div className="pp-ach-item" key={i}>
-                          <div className="pp-ach-icon"><Award size={16} color="#fff" /></div>
-                          <div>
-                            <div className="pp-ach-name">{a.title}</div>
-                            <div className="pp-ach-meta">{a.type}</div>
+                    {achievements.length > 0 ? (
+                      <div className="pp-ach-grid">
+                        {achievements.map((ach, idx) => (
+                          <div className="pp-ach-item" key={idx}>
+                            <div className="pp-ach-icon"><Award size={20} color="#fff" /></div>
+                            <div>
+                              <div className="pp-ach-name">{ach.title}</div>
+                              <div className="pp-ach-meta">{ach.date}</div>
+                            </div>
                           </div>
-                          <div className="pp-ach-badge">{a.period}</div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState icon={Star} label="achievements" />
+                    )}
                   </div>
                 </>
               )}
 
-              {/* Other tabs */}
-              {["certifications", "events", "activities"].includes(activeTab) && (
+              {/* ══ CERTIFICATIONS TAB ══ */}
+              {activeTab === "certifications" && (
                 <div className="pp-section">
                   <div className="pp-section-header">
                     <div className="pp-section-title">
-                      <span className="pp-section-icon">
-                        {activeTab === "certifications" && <Award size={15} />}
-                        {activeTab === "events" && <Calendar size={15} />}
-                        {activeTab === "activities" && <Users size={15} />}
-                      </span>
-                      {activeTab === "certifications" && "Certifications"}
-                      {activeTab === "events" && "Events & Workshops"}
-                      {activeTab === "activities" && "Clubs & Activities"}
+                      <span className="pp-section-icon"><Award size={15} /></span>
+                      Certifications
                     </div>
-                    <button className="pp-add-btn" onClick={() => openModal(activeTab === "activities" ? "club" : activeTab.slice(0, -1))}>
-                      <Plus size={14} />
+                    <button className="pp-add-btn" onClick={() => openModal("certification")}>
+                      <Plus size={16} />
                     </button>
                   </div>
-                  <div className="pp-empty">
-                    <div className="pp-empty-icon">
-                      {activeTab === "certifications" && <Award size={22} />}
-                      {activeTab === "events" && <Calendar size={22} />}
-                      {activeTab === "activities" && <Users size={22} />}
+                  {certifications.length > 0 ? (
+                    <div className="pp-list">
+                      {certifications.map((cert) => (
+                        <ListItem
+                          key={cert._id}
+                          icon={Award}
+                          name={cert.title}
+                          meta={cert.issuer}
+                          desc={cert.date}
+                          onDelete={() => handleDelete("certification", cert._id)}
+                        />
+                      ))}
                     </div>
-                    <p>No entries yet. Click <strong>+</strong> to add one.</p>
-                  </div>
+                  ) : (
+                    <EmptyState icon={Award} label="certifications" />
+                  )}
                 </div>
               )}
+
+              {/* ══ EVENTS TAB ══ */}
+              {activeTab === "events" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title">
+                      <span className="pp-section-icon"><Calendar size={15} /></span>
+                      Events
+                    </div>
+                    <button className="pp-add-btn" onClick={() => openModal("event")}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  {events.length > 0 ? (
+                    <div className="pp-list">
+                      {events.map((evt) => (
+                        <ListItem
+                          key={evt._id}
+                          icon={Calendar}
+                          name={evt.name}
+                          meta={evt.role}
+                          desc={evt.date}
+                          onDelete={() => handleDelete("event", evt._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState icon={Calendar} label="events" />
+                  )}
+                </div>
+              )}
+
+              {/* ══ CLUBS TAB ══ */}
+              {activeTab === "activities" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title">
+                      <span className="pp-section-icon"><Users size={15} /></span>
+                      Clubs
+                    </div>
+                    <button className="pp-add-btn" onClick={() => openModal("club")}>
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  {clubs.length > 0 ? (
+                    <div className="pp-list">
+                      {clubs.map((club) => (
+                        <ListItem
+                          key={club._id}
+                          icon={Users}
+                          name={club.club}
+                          meta={club.role}
+                          desc=""
+                          onDelete={() => handleDelete("club", club._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState icon={Users} label="clubs" />
+                  )}
+                </div>
+              )}
+
             </div>
           </main>
         </div>
 
-        {/* Modal */}
+        {/* ══ MODALS ══ */}
         {showModal && (
-          <div className="pp-modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowModal(false)}>
-            <div className="pp-modal">
+          <div className="pp-modal-overlay" onClick={closeModal}>
+            <div className="pp-modal" onClick={(e) => e.stopPropagation()}>
               <div className="pp-modal-header">
                 <div className="pp-modal-title">Add {modalType}</div>
-                <button className="pp-modal-close" onClick={() => setShowModal(false)}><X size={14} /></button>
+                <button className="pp-modal-close" onClick={closeModal}>
+                  <X size={16} />
+                </button>
               </div>
 
-              {modalType === "achievement" && (
-                <>
-                  <input className="pp-input" placeholder="Title" onChange={e => setFormData({ ...formData, title: e.target.value })} />
-                  <input className="pp-input" placeholder="Subtitle / Type" onChange={e => setFormData({ ...formData, subtitle: e.target.value })} />
-                  <input className="pp-input" placeholder="Year" onChange={e => setFormData({ ...formData, year: e.target.value })} />
-                </>
-              )}
+              {formError && <div className="pp-error">{formError}</div>}
+
               {modalType === "certification" && (
                 <>
-                  <input className="pp-input" placeholder="Certification Title" onChange={e => setFormData({ ...formData, title: e.target.value })} />
-                  <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="pp-input" onChange={e => setFormData({ ...formData, file: e.target.files[0] })} />
+                  <input className="pp-input" placeholder="Title" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Issuer (e.g. Coursera)" onChange={handleInput("issuer")} value={formData.issuer || ""} />
+                  <input className="pp-input" type="date" onChange={handleInput("date")} value={formData.date || ""} />
                 </>
               )}
+
               {modalType === "event" && (
                 <>
-                  <input className="pp-input" placeholder="Event Name" onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                  <input className="pp-input" placeholder="Your Role" onChange={e => setFormData({ ...formData, role: e.target.value })} />
-                  <input className="pp-input" placeholder="Year" onChange={e => setFormData({ ...formData, year: e.target.value })} />
+                  <input className="pp-input" placeholder="Event Name" onChange={handleInput("name")} value={formData.name || ""} />
+                  <input className="pp-input" placeholder="Role" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" type="date" onChange={handleInput("date")} value={formData.date || ""} />
                 </>
               )}
+
               {modalType === "club" && (
                 <>
-                  <input className="pp-input" placeholder="Club Name" onChange={e => setFormData({ ...formData, club: e.target.value })} />
-                  <input className="pp-input" placeholder="Designation" onChange={e => setFormData({ ...formData, designation: e.target.value })} />
-                  <input className="pp-input" placeholder="Duration (e.g. 2022–24)" onChange={e => setFormData({ ...formData, duration: e.target.value })} />
+                  <input className="pp-input" placeholder="Club Name" onChange={handleInput("club")} value={formData.club || ""} />
+                  <input className="pp-input" placeholder="Role" onChange={handleInput("role")} value={formData.role || ""} />
                 </>
               )}
 
               <div className="pp-modal-actions">
-                <button className="pp-btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                <button className="pp-btn-submit" onClick={() => { console.log(formData); setShowModal(false); setFormData({}); }}>
-                  Add Entry
+                <button className="pp-btn-cancel" onClick={closeModal}>Cancel</button>
+                <button className="pp-btn-submit" onClick={handleSubmit} disabled={submitting}>
+                  {submitting ? <Loader size={14} className="pp-spin" /> : "Save"}
                 </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
     </>
   );

@@ -1,21 +1,7 @@
 const mongoose = require("mongoose");
 
-//
-// // 📦 Address Subschema
-//
-// const addressSchema = new mongoose.Schema(
-//   {
-//     street: String,
-//     city: String,
-//     state: String,
-//     country: String,
-//     pincode: String,
-//   },
-//   { _id: false }
-// );
-
 // ------------------------------------
-// 🌐 Social Links Subschemac
+// 🌐 Social Links Subschema
 // ------------------------------------
 const socialLinksSchema = new mongoose.Schema(
   {
@@ -34,9 +20,9 @@ const courseSchema = new mongoose.Schema(
     subjectCode: String,
     subjectName: String,
     credits: Number,
-    grade: String, // e.g., A+, B, etc.
+    grade: String,
     semester: Number,
-    academicYear: String, // e.g., "2024-2025"
+    academicYear: String,
   },
   { _id: false }
 );
@@ -60,17 +46,17 @@ const semesterSchema = new mongoose.Schema(
 // ------------------------------------
 const academicInfoSchema = new mongoose.Schema(
   {
-    program: { type: String }, // e.g., B.Tech, M.Tech
-    department: { type: String }, // e.g., CSE, ECE
+    program: { type: String },
+    department: { type: String },
     yearOfAdmission: Number,
     currentSemester: Number,
     cgpa: Number,
     totalCreditsEarned: Number,
-    pastSemesters: [semesterSchema], // full history
+    pastSemesters: [semesterSchema],
     achievements: [
       {
         title: String,
-        type: String, // e.g., "Scholarship", "Research Paper"
+        type: String,
         year: String,
         description: String,
       },
@@ -93,7 +79,7 @@ const profileSchema = new mongoose.Schema(
     gender: { type: String, enum: ["male", "female", "other"] },
     designation: String,
     institutionEmail: String,
-    registrationNo: String, // for students (unique per institution)
+    registrationNo: String,
     address: String,
     socialLinks: socialLinksSchema,
   },
@@ -125,6 +111,39 @@ const institutionInfoSchema = new mongoose.Schema(
   },
   { _id: false }
 );
+
+// ------------------------------------
+// 📜 Certification Subschema (students only) — ADDED
+// ------------------------------------
+const certificationSchema = new mongoose.Schema({
+  title:      { type: String, required: true },
+  issuedBy:   { type: String, default: "" },
+  issuedDate: { type: Date,   default: null },
+  fileUrl:    { type: String, default: "" },
+  addedAt:    { type: Date,   default: Date.now },
+});
+
+// ------------------------------------
+// 📅 Event/Workshop Subschema (students only) — ADDED
+// ------------------------------------
+const eventSchema = new mongoose.Schema({
+  name:        { type: String, required: true },
+  role:        { type: String, default: "" },
+  year:        { type: String, default: "" },
+  description: { type: String, default: "" },
+  addedAt:     { type: Date,   default: Date.now },
+});
+
+// ------------------------------------
+// 🏆 Club/Activity Subschema (students only) — ADDED
+// ------------------------------------
+const clubSchema = new mongoose.Schema({
+  club:        { type: String, required: true },
+  designation: { type: String, default: "" },
+  duration:    { type: String, default: "" },
+  description: { type: String, default: "" },
+  addedAt:     { type: Date,   default: Date.now },
+});
 
 // ------------------------------------
 // 🧍‍♂️ User Schema (Main)
@@ -161,10 +180,15 @@ const userSchema = new mongoose.Schema(
     // 🎓 Academic Info (only for students)
     academicInfo: academicInfoSchema,
 
+    // 📜 Student-only extras — ADDED
+    certifications: [certificationSchema],
+    events:         [eventSchema],
+    clubs:          [clubSchema],
+
     // General metadata
-    isActive: { type: Boolean, default: true },
+    isActive:   { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
-    lastLogin: { type: Date },
+    lastLogin:  { type: Date },
   },
   { timestamps: true }
 );
