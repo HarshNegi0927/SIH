@@ -26,19 +26,20 @@ const getAssignments = async (req, res, next) => {
     if (status) filter.status = status;
 
     const assignments = await Assignment.find(filter)
-      .select("-submissions") // don't send all submissions in list view
       .sort({ createdAt: -1 });
+      // NOTE: we keep submissions array to compute counts below
 
     const today = new Date().toISOString().split("T")[0];
     const enriched = assignments.map((a) => {
+      const obj = a.toObject();
       const diff = Math.ceil((new Date(a.dueDate) - new Date(today)) / 86400000);
       return {
-        ...a.toObject(),
+        ...obj,
         daysUntilDue: diff,
         isOverdue: diff < 0,
         isDueSoon: diff >= 0 && diff <= 7,
-        // Submission counts
-        submittedCount: a.submissions?.length || 0,
+        submittedCount: obj.submissions?.length || 0,
+        submissions: obj.submissions || [],   // keep for faculty view
       };
     });
 
