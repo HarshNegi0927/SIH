@@ -81,6 +81,7 @@ exports.registerUser = async (req, res) => {
         phone: phone || "",
         registrationNo: generatedRegNo,
         institutionEmail: email,
+        department: department || "",   // saved for all roles
       },
       institutionInfo: {
         collegeName: collegeName || "Unknown College",

@@ -1,6 +1,5 @@
-// server.js
+require("dotenv").config();
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
@@ -9,69 +8,51 @@ const path = require("path");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 
-// Load environment variables
-dotenv.config();
+const authRoutes        = require("./routes/authRoutes");
+const userRoutes        = require("./routes/userRoutes");
+const adminRoutes       = require("./routes/adminRoutes");
+const bulkUploadRoutes  = require("./routes/bulkUploadRoutes");
+const courseRoutes      = require("./routes/courses");
+const attendanceRoutes  = require("./routes/attendance");
+const assignmentRoutes  = require("./routes/assignments");
 
-// Initialize Express
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-// ── Connect MongoDB ───────────────────────────────────────────
 connectDB();
 
-// ── Middleware ────────────────────────────────────────────────
+const app = express();
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ limit: "5mb", extended: true }));
 app.use(morgan("dev"));
-
-// CORS Configuration
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-// Serve uploaded assignment files statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ── Root Route ────────────────────────────────────────────────
-app.get("/", (req, res) => {
-  res.send("🚀 Server is running and MongoDB is connected!");
-});
+// Routes
+app.use("/api/auth",               authRoutes);
+app.use("/api/users",              userRoutes);
+app.use("/api/admin",              adminRoutes);
+app.use("/api/admin",       bulkUploadRoutes);   // POST /api/admin/upload/students
+app.use("/api/courses",            courseRoutes);
+app.use("/api/attendance",         attendanceRoutes);
+app.use("/api/assignments",        assignmentRoutes);
 
-// ── API Routes ────────────────────────────────────────────────
-
-// Existing routes
-app.use("/api/auth",     require("./routes/authRoutes"));
-app.use("/api/admin",    require("./routes/adminRoutes"));
-app.use("/api/upload",   require("./routes/bulkUploadRoutes"));
-app.use("/api/academic", require("./routes/academicRoutes"));
-app.use("/api",          require("./routes/userRoutes"));
-
-// New routes (courses, attendance, assignments)
-app.use("/api/courses",     require("./routes/courses"));
-app.use("/api/attendance",  require("./routes/attendance"));
-app.use("/api/assignments", require("./routes/assignments"));
-
-// ── Health Check ──────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, message: "Server running", timestamp: new Date() });
+  res.status(200).json({ success: true, message: "Server running", timestamp: new Date().toISOString() });
 });
 
-// ── 404 Handler ───────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Route not found: ${req.originalUrl}` });
 });
 
-// ── Central Error Handler ─────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start Server ──────────────────────────────────────────────
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-  console.log(`Frontend: ${process.env.FRONTEND_URL || "http://localhost:5173"}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 });
+
+module.exports = app;

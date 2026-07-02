@@ -10,7 +10,7 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API = import.meta.env.VITE_API_URL || "/api";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -646,7 +646,7 @@ const ProfilePage = () => {
     setLoading(true);
     setGlobalError("");
     try {
-      const res  = await fetch(`${API}/profile`, { headers: authHeaders() });
+      const res  = await fetch(`${API}/users/profile`, { headers: authHeaders() });
       const json = await res.json();
       if (!json.success) throw new Error(json.message || "Failed to load profile");
       setProfile(json.data);
@@ -694,7 +694,7 @@ const ProfilePage = () => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
   // ── Submit: add cert / event / club ─────────────────────────
-  const endpointOf = { certification: "/certifications", event: "/events", club: "/clubs" };
+  const endpointOf = { certification: "/users/certifications", event: "/users/events", club: "/users/clubs" };
   const stateKeyOf = { certification: "certifications", event: "events", club: "clubs" };
   const requiredField = { certification: "title", event: "name", club: "club" };
 

@@ -1,14 +1,14 @@
-// routes/bulkUploadRoutes.js
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/uploadMiddleware");
 const { bulkUploadStudents } = require("../controllers/bulkUploadController");
-const { requireAuth } = require("../middleware/auth");
+const { requireAuth, requireRole } = require("../middleware/auth");
 
-// POST /api/admin/upload-students
+// POST /api/admin/bulk-upload
 router.post(
-  "/students",
+  "/bulk-upload",
   requireAuth,
+  requireRole("admin", "super_admin"),
   upload.single("file"),
   bulkUploadStudents
 );

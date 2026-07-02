@@ -78,6 +78,7 @@ const profileSchema = new mongoose.Schema(
     dateOfBirth: Date,
     gender: { type: String, enum: ["male", "female", "other"] },
     designation: String,
+    department: String,          // for faculty/admin
     institutionEmail: String,
     registrationNo: String,
     address: String,

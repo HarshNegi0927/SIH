@@ -11,6 +11,7 @@ import {
   Mail,
   Settings,
   PlusCircle,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "../../context/authContext";
 
@@ -176,6 +177,17 @@ const AdminLayout = () => {
           >
             <ClipboardCheck size={18} />
             Student List
+          </Link>
+
+          <Link
+            to="/admin/courses"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 ${
+              location.pathname === "/admin/courses"
+                ? "bg-gray-100 font-semibold"
+                : ""
+            }`}
+          >
+            <BookOpen size={18} /> Course Management
           </Link>
 
           <Link

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext"; // ✅ localStorage-based context
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 export default function LoginModal({ isOpen, onClose }) {
   const navigate = useNavigate();

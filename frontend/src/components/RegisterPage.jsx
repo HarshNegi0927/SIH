@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_URL || "/api";
+
 import React, { useState } from "react";
 import { FaUniversity, FaEnvelope, FaLock, FaCode, FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -62,7 +64,7 @@ export default function RegisterPage() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"}/api/auth/register`,
+        `${API_BASE}/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

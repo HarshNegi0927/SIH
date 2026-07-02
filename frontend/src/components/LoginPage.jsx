@@ -3,7 +3,7 @@ import { Mail, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
-const API_BASE = import.meta.env.VITE_API_URL || "";
+const API_BASE = "/api";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -22,11 +22,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const fetchPath = API_BASE
-        ? `${API_BASE}/api/auth/login`
-        : `/api/auth/login`;
-
-      const res = await fetch(fetchPath, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -37,7 +33,11 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.message || "Login failed");
       auth.login(data.user, data.token);
 
-      navigate("/admin");
+      const role = data.user?.role;
+      if (role === "admin" || role === "super_admin") navigate("/admin");
+      else if (role === "faculty") navigate("/faculty");
+      else if (role === "student") navigate("/student");
+      else navigate("/");
     } catch (err) {
       setError(err.message || "Something went wrong");
     } finally {

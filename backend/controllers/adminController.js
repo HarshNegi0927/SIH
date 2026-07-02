@@ -90,3 +90,21 @@ exports.updateAdminProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.getInstitutionFaculty = async (req, res) => {
+  try {
+    const aisheCode = req.user.institutionInfo?.aisheCode;
+    if (!aisheCode)
+      return res.status(400).json({ message: "Admin not linked to institution." });
+
+    const faculty = await User.find({
+      "institutionInfo.aisheCode": aisheCode,
+      role: "faculty",
+    }).select("profile email");
+
+    res.status(200).json({ message: "Faculty fetched", faculty });
+  } catch (err) {
+    console.error("Error fetching faculty:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

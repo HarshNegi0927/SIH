@@ -93,6 +93,9 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // Mark nested profile object as modified so Mongoose persists changes
+    user.markModified('profile');
+
     // Save updated user
     await user.save();
 
