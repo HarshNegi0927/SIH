@@ -15,6 +15,7 @@ import AdminEditProfile from "./components/admin/AdminEditProfile";
 import CourseManagement from "./components/admin/CourseManagement";
 import FacultyDashboard from "./components/faculty";
 import StudentDashboard from "./components/student/StudentDashboard";
+import StudentEditProfile from "./components/student/StudentEditProfile";
 // import CourseManagement from "./components/CoursePage";
 // impot CourseManagement from "./components/CoursePage";
 
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/faculty" element={<FacultyDashboard />} />
         <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/student/edit" element={<StudentEditProfile />} />
         <Route path="/course" element={<CourseManagement />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminHome />} />

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { requireAuth, requireRole } = require("../middleware/auth");
-const upload = require("../middleware/upload");
+const { uploadAssignment } = require("../config/cloudinary");
 const {
   getAssignments,
   getAssignmentById,
@@ -41,7 +41,7 @@ router.delete("/:id", requireRole("faculty"), deleteAssignment);
 router.post(
   "/:id/submit",
   requireRole("student"),
-  upload.single("file"),      // field name must be "file" in form-data
+  uploadAssignment.single("file"),
   submitAssignment
 );
 router.get("/:id/submissions", requireRole("faculty", "admin"), getSubmissions);

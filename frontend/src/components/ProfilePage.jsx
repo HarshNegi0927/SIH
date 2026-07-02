@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 import {
   User, Mail, Phone, Github, Linkedin, Award, BookOpen,
   Users, Calendar, Star, TrendingUp, Edit, Plus,
@@ -624,6 +625,7 @@ const EmptyState = ({ icon: Icon, label }) => (
 // ─────────────────────────────────────────────────────────────
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // UI state
   const [activeTab, setActiveTab]   = useState("academic");
@@ -782,8 +784,8 @@ const ProfilePage = () => {
             <nav className="pp-nav">
               <a href="#" onClick={(e) => { e.preventDefault(); navigate(profile?.role === "student" ? "/student" : profile?.role === "faculty" ? "/faculty" : "/"); }} style={{cursor:"pointer"}}>Dashboard</a>
               <a href="#" className="active">Profile</a>
-              <a href="#">Courses</a>
-              <a href="#">Activities</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate(profile?.role === "student" ? "/student" : profile?.role === "faculty" ? "/faculty" : "/"); }} style={{cursor:"pointer"}}>Courses</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); }} style={{cursor:"default", opacity:"0.5"}}>Activities</a>
             </nav>
 
             <div className="pp-header-actions">
@@ -814,7 +816,7 @@ const ProfilePage = () => {
               </div>
 
 
-              <button className="pp-icon-btn" title="Log out">
+              <button className="pp-icon-btn" title="Log out" onClick={() => { logout(); navigate("/login"); }}>
                 <LogOut size={16} />
               </button>
             </div>
@@ -917,7 +919,7 @@ const ProfilePage = () => {
                 </div>
               )}
 
-              <button className="pp-edit-btn" onClick={() => navigate("/profile/edit")}>
+              <button className="pp-edit-btn" onClick={() => navigate(profile?.role === "student" ? "/student/edit" : "/profile/edit")}>
                 <Edit size={14} /> Edit Profile
               </button>
             </div>
