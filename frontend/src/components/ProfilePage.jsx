@@ -10,7 +10,7 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
-const API = import.meta.env.VITE_API_URL || "/api";
+const API = "/api";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -780,7 +780,7 @@ const ProfilePage = () => {
             </a>
 
             <nav className="pp-nav">
-              <a href="#">Dashboard</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); navigate(profile?.role === "student" ? "/student" : profile?.role === "faculty" ? "/faculty" : "/"); }} style={{cursor:"pointer"}}>Dashboard</a>
               <a href="#" className="active">Profile</a>
               <a href="#">Courses</a>
               <a href="#">Activities</a>
@@ -812,6 +812,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
               </div>
+
 
               <button className="pp-icon-btn" title="Log out">
                 <LogOut size={16} />
