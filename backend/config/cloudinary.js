@@ -1,4 +1,3 @@
-// backend/config/cloudinary.js
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
@@ -9,16 +8,19 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Storage for assignment submissions
 const assignmentStorage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder:    "sihchronize/assignments",
-    resource_type: "auto",   // accepts PDF, images, docs
-    allowed_formats: ["pdf", "doc", "docx", "png", "jpg", "jpeg", "zip", "txt"],
-  },
+  params: async (req, file) => ({
+    folder: "sihchronize/assignments",
+    resource_type: "auto",
+    public_id: `${Date.now()}_${file.originalname.replace(/\s+/g, "_").replace(/\.[^/.]+$/, "")}`,
+    // flags: "attachment" — forces download instead of preview (remove if you want browser preview)
+  }),
 });
 
-const uploadAssignment = multer({ storage: assignmentStorage });
+const uploadAssignment = multer({
+  storage: assignmentStorage,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
+});
 
 module.exports = { cloudinary, uploadAssignment };
