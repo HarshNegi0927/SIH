@@ -182,18 +182,6 @@ const deleteAssignment = async (req, res, next) => {
 // req.file = uploaded file info
 // ─────────────────────────────────────────────────────────────
 
-// Fix Cloudinary URL — resource_type "auto" sometimes saves as /image/upload/
-// but PDFs/docs need /raw/upload/ to be accessible
-const fixCloudinaryUrl = (url, originalname) => {
-  if (!url) return url;
-  const ext = (originalname || '').split('.').pop().toLowerCase();
-  const rawTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'txt', 'csv'];
-  if (rawTypes.includes(ext) && url.includes('/image/upload/')) {
-    return url.replace('/image/upload/', '/raw/upload/');
-  }
-  return url;
-};
-
 const submitAssignment = async (req, res, next) => {
   try {
     if (!req.file)
@@ -218,7 +206,7 @@ const submitAssignment = async (req, res, next) => {
 
     if (existing) {
       // Resubmission: update file, reset grade
-      existing.fileUrl = fixCloudinaryUrl(req.file.path, req.file.originalname);
+      existing.fileUrl = req.file.path;
       existing.fileName = req.file.originalname;
       existing.submittedAt = new Date();
       existing.isLate = isLate;
@@ -230,7 +218,7 @@ const submitAssignment = async (req, res, next) => {
     } else {
       assignment.submissions.push({
         studentId: req.user._id,
-        fileUrl: fixCloudinaryUrl(req.file.path, req.file.originalname),
+        fileUrl: req.file.path,
         fileName: req.file.originalname,
         submittedAt: new Date(),
         isLate,

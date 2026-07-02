@@ -10,17 +10,26 @@ cloudinary.config({
 
 const assignmentStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
-    folder: "sihchronize/assignments",
-    resource_type: "auto",
-    public_id: `${Date.now()}_${file.originalname.replace(/\s+/g, "_").replace(/\.[^/.]+$/, "")}`,
-    // flags: "attachment" — forces download instead of preview (remove if you want browser preview)
-  }),
+  params: async (req, file) => {
+    // Strip special chars from filename for clean public_id
+    const cleanName = file.originalname
+      .replace(/\.[^/.]+$/, "")           // remove extension
+      .replace(/[^a-zA-Z0-9_-]/g, "_")   // replace special chars with _
+      .replace(/_+/g, "_")               // collapse multiple underscores
+      .slice(0, 60);                      // max 60 chars
+
+    return {
+      folder: "sihchronize/assignments",
+      resource_type: "auto",
+      public_id: `${Date.now()}_${cleanName}`,
+      use_filename: false,
+    };
+  },
 });
 
 const uploadAssignment = multer({
   storage: assignmentStorage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
 });
 
 module.exports = { cloudinary, uploadAssignment };
