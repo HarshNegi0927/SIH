@@ -4,7 +4,7 @@ import { useAuth } from "../context/authContext";
 import {
   User, Mail, Phone, Github, Linkedin, Award, BookOpen,
   Users, Calendar, Star, TrendingUp, Edit, Plus,
-  Bell, Moon, Sun, LogOut, X, Trash2, Loader,
+  Bell, Moon, Sun, LogOut, X, Trash2, Loader, Briefcase,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -596,7 +596,7 @@ const getInitials = (profile) => {
 };
 
 // ── Reusable list item card ───────────────────────────────────
-const ListItem = ({ icon: Icon, name, meta, desc, onDelete }) => (
+const ListItem = ({ icon: Icon, name, meta, desc, link, linkLabel, onDelete }) => (
   <div className="pp-list-item">
     <div className="pp-list-icon">
       <Icon size={16} color="#fff" />
@@ -605,12 +605,33 @@ const ListItem = ({ icon: Icon, name, meta, desc, onDelete }) => (
       <div className="pp-list-name">{name}</div>
       {meta && <div className="pp-list-meta">{meta}</div>}
       {desc && <div className="pp-list-desc">{desc}</div>}
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer"
+          style={{ fontSize: "11px", color: "#6C3DE0", textDecoration: "underline", marginTop: "2px", display: "inline-block" }}>
+          {linkLabel || "View"}
+        </a>
+      )}
     </div>
     <button className="pp-delete-btn" onClick={onDelete} title="Remove">
       <Trash2 size={12} />
     </button>
   </div>
 );
+
+// ── Verification Badge ───────────────────────────────────────
+const VerifyBadge = ({ status }) => {
+  const map = {
+    pending:  { label: "Pending",  bg: "#FFF7ED", color: "#C2410C" },
+    approved: { label: "Verified", bg: "#F0FDF4", color: "#15803D" },
+    rejected: { label: "Rejected", bg: "#FEF2F2", color: "#B91C1C" },
+  };
+  const s = map[status] || map.pending;
+  return (
+    <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: s.bg, color: s.color, marginLeft: "6px" }}>
+      {s.label}
+    </span>
+  );
+};
 
 // ── Empty state ───────────────────────────────────────────────
 const EmptyState = ({ icon: Icon, label }) => (
@@ -670,7 +691,12 @@ const ProfilePage = () => {
   const certifications  = profile?.certifications  ?? [];
   const events          = profile?.events          ?? [];
   const clubs           = profile?.clubs           ?? [];
+  const projects        = profile?.projects        ?? [];
+  const internships     = profile?.internships     ?? [];
+  const awards          = profile?.awards          ?? [];
+  const placements      = profile?.placements      ?? [];
   const achievements    = academicInfo?.achievements ?? [];
+
 
   const spiCpiData = (academicInfo?.pastSemesters ?? []).map((s, i) => ({
     sem: `Sem ${s.semesterNumber ?? i + 1}`,
@@ -696,9 +722,19 @@ const ProfilePage = () => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
   // ── Submit: add cert / event / club ─────────────────────────
-  const endpointOf = { certification: "/users/certifications", event: "/users/events", club: "/users/clubs" };
-  const stateKeyOf = { certification: "certifications", event: "events", club: "clubs" };
-  const requiredField = { certification: "title", event: "name", club: "club" };
+  const endpointOf = {
+    certification: "/users/certifications", event: "/users/events", club: "/users/clubs",
+    project: "/users/projects", internship: "/users/internships",
+    award: "/users/awards", placement: "/users/placements",
+  };
+  const stateKeyOf = {
+    certification: "certifications", event: "events", club: "clubs",
+    project: "projects", internship: "internships", award: "awards", placement: "placements",
+  };
+  const requiredField = {
+    certification: "title", event: "name", club: "club",
+    project: "title", internship: "company", award: "title", placement: "company",
+  };
 
   const handleSubmit = async () => {
     const reqField = requiredField[modalType];
@@ -727,7 +763,10 @@ const ProfilePage = () => {
   };
 
   // ── Delete: remove cert / event / club ──────────────────────
-  const paramOf = { certification: "certId", event: "eventId", club: "clubId" };
+  const paramOf = {
+    certification: "certId", event: "eventId", club: "clubId",
+    project: "projectId", internship: "internshipId", award: "awardId", placement: "placementId",
+  };
 
   const handleDelete = async (type, id) => {
     if (!window.confirm("Remove this entry?")) return;
@@ -750,6 +789,10 @@ const ProfilePage = () => {
     { id: "certifications", label: "Certifications", icon: Award     },
     { id: "events",         label: "Events",         icon: Calendar  },
     { id: "activities",     label: "Clubs",          icon: Users     },
+    { id: "projects",       label: "Projects",       icon: TrendingUp },
+    { id: "internships",    label: "Internships",    icon: Briefcase  },
+    { id: "awards",         label: "Awards",         icon: Star       },
+    { id: "placements",     label: "Placements",     icon: Award      },
   ];
 
   // ── Full-page loading spinner ────────────────────────────────
@@ -785,7 +828,7 @@ const ProfilePage = () => {
               <a href="#" onClick={(e) => { e.preventDefault(); navigate(profile?.role === "student" ? "/student" : profile?.role === "faculty" ? "/faculty" : "/"); }} style={{cursor:"pointer"}}>Dashboard</a>
               <a href="#" className="active">Profile</a>
               <a href="#" onClick={(e) => { e.preventDefault(); navigate(profile?.role === "student" ? "/student" : profile?.role === "faculty" ? "/faculty" : "/"); }} style={{cursor:"pointer"}}>Courses</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); }} style={{cursor:"default", opacity:"0.5"}}>Activities</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setActiveTab("certifications"); }} style={{cursor:"pointer"}}>Activities</a>
             </nav>
 
             <div className="pp-header-actions">
@@ -1021,29 +1064,31 @@ const ProfilePage = () => {
                     </div>
                   )}
 
-                  {/* Achievements section */}
+                  {/* Achievement Summary */}
                   <div className="pp-section">
                     <div className="pp-section-header">
                       <div className="pp-section-title">
                         <span className="pp-section-icon"><Star size={15} /></span>
-                        Achievements
+                        Achievement Summary
                       </div>
                     </div>
-                    {achievements.length > 0 ? (
-                      <div className="pp-ach-grid">
-                        {achievements.map((ach, idx) => (
-                          <div className="pp-ach-item" key={idx}>
-                            <div className="pp-ach-icon"><Award size={20} color="#fff" /></div>
-                            <div>
-                              <div className="pp-ach-name">{ach.title}</div>
-                              <div className="pp-ach-meta">{ach.date}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyState icon={Star} label="achievements" />
-                    )}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "12px", marginTop: "8px" }}>
+                      {[
+                        { label: "Certifications", count: certifications.filter(c => c.verification?.status === "approved").length, total: certifications.length, color: "#7C3AED" },
+                        { label: "Projects",       count: projects.filter(p => p.verification?.status === "approved").length,       total: projects.length,       color: "#0AA5B7" },
+                        { label: "Internships",    count: internships.filter(i => i.verification?.status === "approved").length,    total: internships.length,    color: "#059669" },
+                        { label: "Awards",         count: awards.filter(a => a.verification?.status === "approved").length,         total: awards.length,         color: "#D97706" },
+                        { label: "Placements",     count: placements.filter(p => p.verification?.status === "approved").length,     total: placements.length,     color: "#DC2626" },
+                        { label: "Events",         count: events.length, total: events.length, color: "#7C3AED" },
+                        { label: "Clubs",          count: clubs.length,  total: clubs.length,  color: "#0AA5B7" },
+                      ].map(({ label, count, total, color }) => (
+                        <div key={label} style={{ background: "#F9F7FF", border: "1px solid #EDE9FF", borderRadius: "12px", padding: "14px 12px", textAlign: "center" }}>
+                          <div style={{ fontSize: "22px", fontWeight: 800, color }}>{count}</div>
+                          <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>{label}</div>
+                          {total > count && <div style={{ fontSize: "10px", color: "#F59E0B", marginTop: "2px" }}>{total - count} pending</div>}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </>
               )}
@@ -1067,8 +1112,10 @@ const ProfilePage = () => {
                           key={cert._id}
                           icon={Award}
                           name={cert.title}
-                          meta={cert.issuer}
-                          desc={cert.date}
+                          meta={cert.issuedBy || ""}
+                          desc={cert.issuedDate ? new Date(cert.issuedDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : ""}
+                          link={cert.fileUrl || ""}
+                          linkLabel="View Certificate"
                           onDelete={() => handleDelete("certification", cert._id)}
                         />
                       ))}
@@ -1141,6 +1188,105 @@ const ProfilePage = () => {
                 </div>
               )}
 
+              {/* ══ PROJECTS ══ */}
+              {activeTab === "projects" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title"><span className="pp-section-icon"><TrendingUp size={15} /></span>Projects</div>
+                    <button className="pp-add-btn" onClick={() => openModal("project")}><Plus size={16} /></button>
+                  </div>
+                  {projects.length > 0 ? (
+                    <div className="pp-list">
+                      {projects.map(p => (
+                        <ListItem key={p._id} icon={TrendingUp}
+                          name={<span>{p.title} <VerifyBadge status={p.verification?.status} /></span>}
+                          meta={p.techStack ? `Tech: ${p.techStack}` : ""}
+                          desc={[p.year, p.description].filter(Boolean).join(" · ")}
+                          link={p.githubUrl || p.liveUrl || ""}
+                          linkLabel={p.githubUrl ? "GitHub" : "Live Demo"}
+                          onDelete={() => handleDelete("project", p._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : <EmptyState icon={TrendingUp} label="projects" />}
+                </div>
+              )}
+
+              {/* ══ INTERNSHIPS ══ */}
+              {activeTab === "internships" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title"><span className="pp-section-icon"><Briefcase size={15} /></span>Internships</div>
+                    <button className="pp-add-btn" onClick={() => openModal("internship")}><Plus size={16} /></button>
+                  </div>
+                  {internships.length > 0 ? (
+                    <div className="pp-list">
+                      {internships.map(i => (
+                        <ListItem key={i._id} icon={Briefcase}
+                          name={<span>{i.company} <VerifyBadge status={i.verification?.status} /></span>}
+                          meta={[i.role, i.stipend ? `₹${i.stipend}` : ""].filter(Boolean).join(" · ")}
+                          desc={[
+                            i.startDate ? new Date(i.startDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "",
+                            i.endDate   ? new Date(i.endDate).toLocaleDateString("en-IN",   { month: "short", year: "numeric" }) : "",
+                          ].filter(Boolean).join(" – ")}
+                          link={i.offerLetterUrl || ""}
+                          linkLabel="Offer Letter"
+                          onDelete={() => handleDelete("internship", i._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : <EmptyState icon={Briefcase} label="internships" />}
+                </div>
+              )}
+
+              {/* ══ AWARDS ══ */}
+              {activeTab === "awards" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title"><span className="pp-section-icon"><Star size={15} /></span>Awards & Achievements</div>
+                    <button className="pp-add-btn" onClick={() => openModal("award")}><Plus size={16} /></button>
+                  </div>
+                  {awards.length > 0 ? (
+                    <div className="pp-list">
+                      {awards.map(a => (
+                        <ListItem key={a._id} icon={Star}
+                          name={<span>{a.title} <VerifyBadge status={a.verification?.status} /></span>}
+                          meta={[a.issuedBy, a.year].filter(Boolean).join(", ")}
+                          desc={a.description || ""}
+                          link={a.proofUrl || ""}
+                          linkLabel="View Proof"
+                          onDelete={() => handleDelete("award", a._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : <EmptyState icon={Star} label="awards" />}
+                </div>
+              )}
+
+              {/* ══ PLACEMENTS ══ */}
+              {activeTab === "placements" && (
+                <div className="pp-section">
+                  <div className="pp-section-header">
+                    <div className="pp-section-title"><span className="pp-section-icon"><Award size={15} /></span>Placements</div>
+                    <button className="pp-add-btn" onClick={() => openModal("placement")}><Plus size={16} /></button>
+                  </div>
+                  {placements.length > 0 ? (
+                    <div className="pp-list">
+                      {placements.map(pl => (
+                        <ListItem key={pl._id} icon={Award}
+                          name={<span>{pl.company} <VerifyBadge status={pl.verification?.status} /></span>}
+                          meta={[pl.role, pl.package].filter(Boolean).join(" · ")}
+                          desc={pl.joiningDate ? `Joining: ${new Date(pl.joiningDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}` : ""}
+                          link={pl.offerLetterUrl || ""}
+                          linkLabel="Offer Letter"
+                          onDelete={() => handleDelete("placement", pl._id)}
+                        />
+                      ))}
+                    </div>
+                  ) : <EmptyState icon={Award} label="placements" />}
+                </div>
+              )}
+
             </div>
           </main>
         </div>
@@ -1160,24 +1306,112 @@ const ProfilePage = () => {
 
               {modalType === "certification" && (
                 <>
-                  <input className="pp-input" placeholder="Title" onChange={handleInput("title")} value={formData.title || ""} />
-                  <input className="pp-input" placeholder="Issuer (e.g. Coursera)" onChange={handleInput("issuer")} value={formData.issuer || ""} />
-                  <input className="pp-input" type="date" onChange={handleInput("date")} value={formData.date || ""} />
+                  <input className="pp-input" placeholder="Title *" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Issued By (e.g. Coursera, NPTEL)" onChange={handleInput("issuedBy")} value={formData.issuedBy || ""} />
+                  <input className="pp-input" type="date" placeholder="Issue Date" onChange={handleInput("issuedDate")} value={formData.issuedDate || ""} />
+                  <input className="pp-input" placeholder="Certificate URL (optional)" onChange={handleInput("fileUrl")} value={formData.fileUrl || ""} />
                 </>
               )}
 
               {modalType === "event" && (
                 <>
-                  <input className="pp-input" placeholder="Event Name" onChange={handleInput("name")} value={formData.name || ""} />
-                  <input className="pp-input" placeholder="Role" onChange={handleInput("role")} value={formData.role || ""} />
-                  <input className="pp-input" type="date" onChange={handleInput("date")} value={formData.date || ""} />
+                  <input className="pp-input" placeholder="Event Name *" onChange={handleInput("name")} value={formData.name || ""} />
+                  <input className="pp-input" placeholder="Your Role (e.g. Participant, Organizer)" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" placeholder="Year (e.g. 2024)" onChange={handleInput("year")} value={formData.year || ""} />
+                  <input className="pp-input" placeholder="Description (optional)" onChange={handleInput("description")} value={formData.description || ""} />
                 </>
               )}
 
               {modalType === "club" && (
                 <>
-                  <input className="pp-input" placeholder="Club Name" onChange={handleInput("club")} value={formData.club || ""} />
-                  <input className="pp-input" placeholder="Role" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" placeholder="Club / Society Name *" onChange={handleInput("club")} value={formData.club || ""} />
+                  <input className="pp-input" placeholder="Your Role (e.g. Member, President)" onChange={handleInput("role")} value={formData.role || ""} />
+                </>
+              )}
+
+              {modalType === "project" && (
+                <>
+                  <input className="pp-input" placeholder="Project Title *" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Tech Stack (e.g. React, Node, MongoDB)" onChange={handleInput("techStack")} value={formData.techStack || ""} />
+                  <input className="pp-input" placeholder="Year" onChange={handleInput("year")} value={formData.year || ""} />
+                  <input className="pp-input" placeholder="GitHub URL" onChange={handleInput("githubUrl")} value={formData.githubUrl || ""} />
+                  <input className="pp-input" placeholder="Live URL (optional)" onChange={handleInput("liveUrl")} value={formData.liveUrl || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "internship" && (
+                <>
+                  <input className="pp-input" placeholder="Company Name *" onChange={handleInput("company")} value={formData.company || ""} />
+                  <input className="pp-input" placeholder="Your Role (e.g. SDE Intern)" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" type="date" placeholder="Start Date" onChange={handleInput("startDate")} value={formData.startDate || ""} />
+                  <input className="pp-input" type="date" placeholder="End Date" onChange={handleInput("endDate")} value={formData.endDate || ""} />
+                  <input className="pp-input" placeholder="Stipend (e.g. 15000/month)" onChange={handleInput("stipend")} value={formData.stipend || ""} />
+                  <input className="pp-input" placeholder="Offer Letter URL (optional)" onChange={handleInput("offerLetterUrl")} value={formData.offerLetterUrl || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "award" && (
+                <>
+                  <input className="pp-input" placeholder="Award / Achievement Title *" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Issued By (e.g. IIT Bombay)" onChange={handleInput("issuedBy")} value={formData.issuedBy || ""} />
+                  <input className="pp-input" placeholder="Year" onChange={handleInput("year")} value={formData.year || ""} />
+                  <input className="pp-input" placeholder="Proof URL (optional)" onChange={handleInput("proofUrl")} value={formData.proofUrl || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "placement" && (
+                <>
+                  <input className="pp-input" placeholder="Company Name *" onChange={handleInput("company")} value={formData.company || ""} />
+                  <input className="pp-input" placeholder="Role / Position" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" placeholder="Package (e.g. 12 LPA)" onChange={handleInput("package")} value={formData.package || ""} />
+                  <input className="pp-input" type="date" placeholder="Joining Date" onChange={handleInput("joiningDate")} value={formData.joiningDate || ""} />
+                  <input className="pp-input" placeholder="Offer Letter URL (optional)" onChange={handleInput("offerLetterUrl")} value={formData.offerLetterUrl || ""} />
+                </>
+              )}
+
+              {modalType === "project" && (
+                <>
+                  <input className="pp-input" placeholder="Project Title *" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Tech Stack (e.g. React, Node, MongoDB)" onChange={handleInput("techStack")} value={formData.techStack || ""} />
+                  <input className="pp-input" placeholder="GitHub URL" onChange={handleInput("githubUrl")} value={formData.githubUrl || ""} />
+                  <input className="pp-input" placeholder="Live URL (optional)" onChange={handleInput("liveUrl")} value={formData.liveUrl || ""} />
+                  <input className="pp-input" placeholder="Year" onChange={handleInput("year")} value={formData.year || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "internship" && (
+                <>
+                  <input className="pp-input" placeholder="Company Name *" onChange={handleInput("company")} value={formData.company || ""} />
+                  <input className="pp-input" placeholder="Role / Position" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" type="date" placeholder="Start Date" onChange={handleInput("startDate")} value={formData.startDate || ""} />
+                  <input className="pp-input" type="date" placeholder="End Date" onChange={handleInput("endDate")} value={formData.endDate || ""} />
+                  <input className="pp-input" placeholder="Stipend (e.g. 15000/month)" onChange={handleInput("stipend")} value={formData.stipend || ""} />
+                  <input className="pp-input" placeholder="Offer Letter URL (optional)" onChange={handleInput("offerLetterUrl")} value={formData.offerLetterUrl || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "award" && (
+                <>
+                  <input className="pp-input" placeholder="Award Title *" onChange={handleInput("title")} value={formData.title || ""} />
+                  <input className="pp-input" placeholder="Issued By (e.g. AICTE, IIT Delhi)" onChange={handleInput("issuedBy")} value={formData.issuedBy || ""} />
+                  <input className="pp-input" placeholder="Year" onChange={handleInput("year")} value={formData.year || ""} />
+                  <input className="pp-input" placeholder="Proof URL (optional)" onChange={handleInput("proofUrl")} value={formData.proofUrl || ""} />
+                  <input className="pp-input" placeholder="Description" onChange={handleInput("description")} value={formData.description || ""} />
+                </>
+              )}
+
+              {modalType === "placement" && (
+                <>
+                  <input className="pp-input" placeholder="Company Name *" onChange={handleInput("company")} value={formData.company || ""} />
+                  <input className="pp-input" placeholder="Role / Position" onChange={handleInput("role")} value={formData.role || ""} />
+                  <input className="pp-input" placeholder="Package (e.g. 12 LPA)" onChange={handleInput("package")} value={formData.package || ""} />
+                  <input className="pp-input" type="date" placeholder="Joining Date" onChange={handleInput("joiningDate")} value={formData.joiningDate || ""} />
+                  <input className="pp-input" placeholder="Offer Letter URL (optional)" onChange={handleInput("offerLetterUrl")} value={formData.offerLetterUrl || ""} />
                 </>
               )}
 

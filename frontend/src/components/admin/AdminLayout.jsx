@@ -12,6 +12,8 @@ import {
   Settings,
   PlusCircle,
   BookOpen,
+  ShieldCheck,
+  BarChart2,
 } from "lucide-react";
 import { useAuth } from "../../context/authContext";
 
@@ -199,6 +201,28 @@ const AdminLayout = () => {
             }`}
           >
             <PlusCircle size={18} /> Invite Faculty
+          </Link>
+
+          <Link
+            to="/admin/verify"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 ${
+              location.pathname === "/admin/verify"
+                ? "bg-gray-100 font-semibold"
+                : ""
+            }`}
+          >
+            <ShieldCheck size={18} /> Verify Achievements
+          </Link>
+
+          <Link
+            to="/admin/reports"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 ${
+              location.pathname === "/admin/reports"
+                ? "bg-gray-100 font-semibold"
+                : ""
+            }`}
+          >
+            <BarChart2 size={18} /> Reports
           </Link>
 
           <button className="flex items-center w-full gap-3 px-4 py-3 rounded hover:bg-gray-100">

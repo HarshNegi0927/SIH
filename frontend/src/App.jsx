@@ -13,6 +13,8 @@ import BulkUpload from "./components/admin/BulkUpload";
 import InviteAdmins from "./components/admin/InviteAdmins";
 import AdminEditProfile from "./components/admin/AdminEditProfile";
 import CourseManagement from "./components/admin/CourseManagement";
+import VerifyAchievements from "./components/admin/VerifyAchievements";
+import Reports from "./components/admin/Reports";
 import FacultyDashboard from "./components/faculty";
 import StudentDashboard from "./components/student/StudentDashboard";
 import StudentEditProfile from "./components/student/StudentEditProfile";
@@ -40,6 +42,8 @@ export default function App() {
           <Route path="bulk-upload" element={<BulkUpload />} />
           <Route path="invite-admins" element={<InviteAdmins />} />
           <Route path="courses" element={<CourseManagement />} />
+          <Route path="verify" element={<VerifyAchievements />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="edit" element={<AdminEditProfile />} />
         </Route>
       </Routes>
