@@ -74,6 +74,7 @@ exports.updateProfile = async (req, res) => {
       if (updates.profile.dateOfBirth) user.profile.dateOfBirth = updates.profile.dateOfBirth;
       if (updates.profile.gender) user.profile.gender = updates.profile.gender;
       if (updates.profile.designation) user.profile.designation = updates.profile.designation;
+      if (updates.profile.department !== undefined) user.profile.department = updates.profile.department;
       if (updates.profile.institutionEmail) user.profile.institutionEmail = updates.profile.institutionEmail;
       if (updates.profile.address) user.profile.address = updates.profile.address;
       if (updates.profile.profileImage) user.profile.profileImage = updates.profile.profileImage;
@@ -583,4 +584,145 @@ exports.deleteClub = async (req, res) => {
     console.error("Delete club error:", error);
     res.status(500).json({ success: false, message: "Server error while deleting club" });
   }
+};
+// ============================================================
+// PROJECTS
+// ============================================================
+exports.addProject = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Students only" });
+    const { title, description, techStack, githubUrl, liveUrl, year } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Title is required" });
+    user.projects.push({ title, description, techStack, githubUrl, liveUrl, year, verification: { status: "pending" } });
+    user.markModified("projects");
+    await user.save();
+    res.status(201).json({ success: true, message: "Project added", data: user.projects });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    user.projects = user.projects.filter(p => p._id?.toString() !== req.params.projectId);
+    user.markModified("projects");
+    await user.save();
+    res.status(200).json({ success: true, data: user.projects });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// ============================================================
+// INTERNSHIPS
+// ============================================================
+exports.addInternship = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Students only" });
+    const { company, role, startDate, endDate, stipend, description, offerLetterUrl } = req.body;
+    if (!company) return res.status(400).json({ success: false, message: "Company is required" });
+    user.internships.push({ company, role, startDate, endDate, stipend, description, offerLetterUrl, verification: { status: "pending" } });
+    user.markModified("internships");
+    await user.save();
+    res.status(201).json({ success: true, message: "Internship added", data: user.internships });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deleteInternship = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    user.internships = user.internships.filter(i => i._id?.toString() !== req.params.internshipId);
+    user.markModified("internships");
+    await user.save();
+    res.status(200).json({ success: true, data: user.internships });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// ============================================================
+// AWARDS
+// ============================================================
+exports.addAward = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Students only" });
+    const { title, issuedBy, year, description, proofUrl } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: "Title is required" });
+    user.awards.push({ title, issuedBy, year, description, proofUrl, verification: { status: "pending" } });
+    user.markModified("awards");
+    await user.save();
+    res.status(201).json({ success: true, message: "Award added", data: user.awards });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deleteAward = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    user.awards = user.awards.filter(a => a._id?.toString() !== req.params.awardId);
+    user.markModified("awards");
+    await user.save();
+    res.status(200).json({ success: true, data: user.awards });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// ============================================================
+// PLACEMENTS
+// ============================================================
+exports.addPlacement = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (user.role !== "student") return res.status(403).json({ success: false, message: "Students only" });
+    const { company, role, package: pkg, joiningDate, offerLetterUrl } = req.body;
+    if (!company) return res.status(400).json({ success: false, message: "Company is required" });
+    user.placements.push({ company, role, package: pkg, joiningDate, offerLetterUrl, verification: { status: "pending" } });
+    user.markModified("placements");
+    await user.save();
+    res.status(201).json({ success: true, message: "Placement added", data: user.placements });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.deletePlacement = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    user.placements = user.placements.filter(p => p._id?.toString() !== req.params.placementId);
+    user.markModified("placements");
+    await user.save();
+    res.status(200).json({ success: true, data: user.placements });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// ============================================================
+// VERIFY (Admin/Faculty) — approve or reject any achievement
+// ============================================================
+exports.verifyAchievement = async (req, res) => {
+  try {
+    const { studentId, type, itemId, status, remark } = req.body;
+    // type = "projects" | "internships" | "awards" | "placements" | "certifications"
+    const validTypes = ["projects", "internships", "awards", "placements", "certifications"];
+    if (!validTypes.includes(type)) return res.status(400).json({ success: false, message: "Invalid type" });
+    if (!["approved", "rejected"].includes(status)) return res.status(400).json({ success: false, message: "Status must be approved or rejected" });
+
+    const student = await User.findById(studentId);
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
+
+    const item = student[type]?.id(itemId);
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+
+    item.verification = {
+      status,
+      verifiedBy: req.user._id,
+      verifiedAt: new Date(),
+      remark: remark || "",
+    };
+    student.markModified(type);
+    await student.save();
+
+    res.status(200).json({ success: true, message: `${type} ${status}`, data: student[type] });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };

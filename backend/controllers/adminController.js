@@ -38,7 +38,7 @@ exports.getInstitutionStudents = async (req, res) => {
     const students = await User.find({
       "institutionInfo.aisheCode": aisheCode,
       role: "student",
-    }).select("profile email institutionInfo.department"); // .select() just gets the data you need
+    }).select("profile email academicInfo institutionInfo certifications events clubs projects internships awards placements");
 
     // 3. Send the list of students
     res.status(200).json({
@@ -106,5 +106,110 @@ exports.getInstitutionFaculty = async (req, res) => {
   } catch (err) {
     console.error("Error fetching faculty:", err);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ============================================================
+// GET PENDING VERIFICATIONS — all students' pending achievements
+// ============================================================
+exports.getPendingVerifications = async (req, res) => {
+  try {
+    const aisheCode = req.user.institutionInfo?.aisheCode;
+    const students = await User.find({
+      "institutionInfo.aisheCode": aisheCode,
+      role: "student",
+    }).select("profile email projects internships awards placements certifications");
+
+    const pending = [];
+    const types = ["projects", "internships", "awards", "placements", "certifications"];
+
+    students.forEach(s => {
+      const name = `${s.profile?.firstName || ""} ${s.profile?.lastName || ""}`.trim() || s.email;
+      types.forEach(type => {
+        (s[type] || []).forEach(item => {
+          if (item.verification?.status === "pending") {
+            pending.push({
+              studentId:   s._id,
+              studentName: name,
+              studentEmail: s.email,
+              type,
+              item,
+            });
+          }
+        });
+      });
+    });
+
+    res.status(200).json({ success: true, data: pending });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ============================================================
+// GET INSTITUTION REPORT — analytics for admin dashboard
+// ============================================================
+exports.getInstitutionReport = async (req, res) => {
+  try {
+    const aisheCode = req.user.institutionInfo?.aisheCode;
+    const students = await User.find({
+      "institutionInfo.aisheCode": aisheCode,
+      role: "student",
+    }).select("profile email academicInfo projects internships awards placements certifications");
+
+    const report = {
+      totalStudents: students.length,
+      departments: {},
+      totalCertifications: 0,
+      totalProjects: 0,
+      totalInternships: 0,
+      totalAwards: 0,
+      totalPlacements: 0,
+      avgCgpa: 0,
+      topStudents: [],
+    };
+
+    let cgpaSum = 0, cgpaCount = 0;
+
+    students.forEach(s => {
+      const dept = s.academicInfo?.department || "Unknown";
+      if (!report.departments[dept]) report.departments[dept] = { students: 0, placements: 0, internships: 0 };
+      report.departments[dept].students++;
+
+      const certs   = (s.certifications || []).filter(i => i.verification?.status === "approved").length;
+      const projs   = (s.projects      || []).filter(i => i.verification?.status === "approved").length;
+      const interns = (s.internships   || []).filter(i => i.verification?.status === "approved").length;
+      const awards  = (s.awards        || []).filter(i => i.verification?.status === "approved").length;
+      const placements = (s.placements || []).filter(i => i.verification?.status === "approved").length;
+
+      report.totalCertifications += certs;
+      report.totalProjects       += projs;
+      report.totalInternships    += interns;
+      report.totalAwards         += awards;
+      report.totalPlacements     += placements;
+      report.departments[dept].placements  += placements;
+      report.departments[dept].internships += interns;
+
+      const cgpa = s.academicInfo?.cgpa;
+      if (cgpa) { cgpaSum += cgpa; cgpaCount++; }
+
+      const score = certs + projs*2 + interns*2 + awards*3 + placements*4;
+      report.topStudents.push({
+        name: `${s.profile?.firstName || ""} ${s.profile?.lastName || ""}`.trim() || s.email,
+        email: s.email,
+        dept,
+        cgpa: cgpa || 0,
+        score,
+        certifications: certs, projects: projs, internships: interns,
+        awards, placements,
+      });
+    });
+
+    report.avgCgpa = cgpaCount ? (cgpaSum / cgpaCount).toFixed(2) : 0;
+    report.topStudents = report.topStudents.sort((a, b) => b.score - a.score).slice(0, 10);
+
+    res.status(200).json({ success: true, data: report });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

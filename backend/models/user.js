@@ -117,11 +117,15 @@ const institutionInfoSchema = new mongoose.Schema(
 // 📜 Certification Subschema (students only) — ADDED
 // ------------------------------------
 const certificationSchema = new mongoose.Schema({
-  title:      { type: String, required: true },
-  issuedBy:   { type: String, default: "" },
-  issuedDate: { type: Date,   default: null },
-  fileUrl:    { type: String, default: "" },
-  addedAt:    { type: Date,   default: Date.now },
+  title:        { type: String, required: true },
+  issuedBy:     { type: String, default: "" },
+  issuedDate:   { type: Date,   default: null },
+  fileUrl:      { type: String, default: "" },
+  addedAt:      { type: Date,   default: Date.now },
+  verification: { status: { type: String, enum: ["pending","approved","rejected"], default: "pending" },
+                  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+                  verifiedAt: { type: Date, default: null },
+                  remark:     { type: String, default: "" } },
 });
 
 // ------------------------------------
@@ -144,6 +148,62 @@ const clubSchema = new mongoose.Schema({
   duration:    { type: String, default: "" },
   description: { type: String, default: "" },
   addedAt:     { type: Date,   default: Date.now },
+});
+
+
+// ── Verification subdoc (reused across projects/internships/awards) ──
+const verificationSchema = new mongoose.Schema({
+  status:     { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+  verifiedAt: { type: Date, default: null },
+  remark:     { type: String, default: "" },
+});
+
+// ── Project Schema ───────────────────────────────────────────
+const projectSchema = new mongoose.Schema({
+  title:        { type: String, required: true },
+  description:  { type: String, default: "" },
+  techStack:    { type: String, default: "" },   // comma separated
+  githubUrl:    { type: String, default: "" },
+  liveUrl:      { type: String, default: "" },
+  year:         { type: String, default: "" },
+  addedAt:      { type: Date, default: Date.now },
+  verification: { type: verificationSchema, default: () => ({}) },
+});
+
+// ── Internship Schema ────────────────────────────────────────
+const internshipSchema = new mongoose.Schema({
+  company:      { type: String, required: true },
+  role:         { type: String, default: "" },
+  startDate:    { type: Date,   default: null },
+  endDate:      { type: Date,   default: null },
+  stipend:      { type: String, default: "" },
+  description:  { type: String, default: "" },
+  offerLetterUrl: { type: String, default: "" },
+  addedAt:      { type: Date, default: Date.now },
+  verification: { type: verificationSchema, default: () => ({}) },
+});
+
+// ── Award Schema ─────────────────────────────────────────────
+const awardSchema = new mongoose.Schema({
+  title:        { type: String, required: true },
+  issuedBy:     { type: String, default: "" },
+  year:         { type: String, default: "" },
+  description:  { type: String, default: "" },
+  proofUrl:     { type: String, default: "" },
+  addedAt:      { type: Date, default: Date.now },
+  verification: { type: verificationSchema, default: () => ({}) },
+});
+
+// ── Placement Schema ─────────────────────────────────────────
+const placementSchema = new mongoose.Schema({
+  company:      { type: String, required: true },
+  role:         { type: String, default: "" },
+  package:      { type: String, default: "" },   // e.g. "12 LPA"
+  joiningDate:  { type: Date,   default: null },
+  offerLetterUrl: { type: String, default: "" },
+  addedAt:      { type: Date, default: Date.now },
+  verification: { type: verificationSchema, default: () => ({}) },
 });
 
 // ------------------------------------
@@ -185,6 +245,10 @@ const userSchema = new mongoose.Schema(
     certifications: [certificationSchema],
     events:         [eventSchema],
     clubs:          [clubSchema],
+    projects:       [projectSchema],
+    internships:    [internshipSchema],
+    awards:         [awardSchema],
+    placements:     [placementSchema],
 
     // General metadata
     isActive:   { type: Boolean, default: true },

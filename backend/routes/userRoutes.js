@@ -21,6 +21,15 @@ const {
   deleteEvent,
   addClub,
   deleteClub,
+  addProject,
+  deleteProject,
+  addInternship,
+  deleteInternship,
+  addAward,
+  deleteAward,
+  addPlacement,
+  deletePlacement,
+  verifyAchievement,
 } = require("../controllers/userController");
 
 // ------------------------------------
@@ -93,5 +102,24 @@ router.delete("/events/:eventId",           requireAuth, deleteEvent);
 // ------------------------------------
 router.post("/clubs",                       requireAuth, addClub);
 router.delete("/clubs/:clubId",             requireAuth, deleteClub);
+
+// ── Projects ────────────────────────────────────────────────
+router.post("/projects",                requireAuth, addProject);
+router.delete("/projects/:projectId",   requireAuth, deleteProject);
+
+// ── Internships ──────────────────────────────────────────────
+router.post("/internships",                   requireAuth, addInternship);
+router.delete("/internships/:internshipId",   requireAuth, deleteInternship);
+
+// ── Awards ───────────────────────────────────────────────────
+router.post("/awards",              requireAuth, addAward);
+router.delete("/awards/:awardId",   requireAuth, deleteAward);
+
+// ── Placements ───────────────────────────────────────────────
+router.post("/placements",                requireAuth, addPlacement);
+router.delete("/placements/:placementId", requireAuth, deletePlacement);
+
+// ── Verify achievement (Admin/Faculty) ───────────────────────
+router.post("/verify-achievement", requireAuth, verifyAchievement);
 
 module.exports = router;
